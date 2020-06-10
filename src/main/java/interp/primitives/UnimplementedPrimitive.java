@@ -1,15 +1,10 @@
-package interp;
+package interp.primitives;
+
+import interp.Value;
 
 import java.util.Arrays;
-import java.util.List;
 
-interface Primitive {
-    Value call(Value[] values);
-
-    String getName();
-}
-
-class UnimplementedPrimitive implements Primitive {
+public class UnimplementedPrimitive implements Primitive {
     String name;
     public UnimplementedPrimitive(String name) {
         this.name = name;
@@ -27,18 +22,5 @@ class UnimplementedPrimitive implements Primitive {
     @Override
     public String getName() {
         return name;
-    }
-}
-public class Primitives {
-
-
-    private final List<Primitive> primitives;
-
-    public Primitives(List<Primitive> primitives) {
-        this.primitives =primitives;
-    }
-
-    public Primitive get(int i) {
-        return primitives.get(i);
     }
 }

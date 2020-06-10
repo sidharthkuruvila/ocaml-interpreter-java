@@ -1,6 +1,9 @@
 package interp;
 
-import javax.naming.Name;
+import interp.primitives.Primitive;
+import interp.primitives.PrimitiveRegistry;
+import interp.primitives.Primitives;
+
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;

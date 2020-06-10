@@ -136,8 +136,7 @@ class CodeFragmentTable {
     }
 }
 
-interface Value {
-};
+;
 
 class Atom implements Value {
     private final int tag;

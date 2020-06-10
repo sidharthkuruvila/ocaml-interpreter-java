@@ -1,4 +1,4 @@
-package interp;
+package interp.primitives;
 
 import java.util.HashMap;
 import java.util.List;
@@ -7,9 +7,9 @@ import java.util.stream.Collectors;
 
 public class PrimitiveRegistry {
 
-    Map<String, Primitive> primitives = new HashMap<>();
+    private final Map<String, Primitive> primitives = new HashMap<>();
 
-    Primitives getPrimitives(List<String> names) {
+    public Primitives getPrimitives(List<String> names) {
         return new Primitives(names.stream()
                 .map((String name) -> primitives.getOrDefault(name, new UnimplementedPrimitive(name)))
                 .collect(Collectors.toList()));
