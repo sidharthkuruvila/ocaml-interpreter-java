@@ -59,6 +59,14 @@ public class Executable {
         return prims;
     }
 
+    public CodeFragment getCodeFragment() {
+        return codeFragment;
+    }
+
+    public ObjectValue getGlobalData() {
+        return (ObjectValue) globalData;
+    }
+
     public static class Section {
         private final String name;
         private final byte[] data;

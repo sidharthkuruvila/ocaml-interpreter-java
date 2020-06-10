@@ -15,7 +15,7 @@ public class ExecutableBuilderTest {
             FileChannel ch = FileChannel.open(path);
             CodeFragmentTable codeFragmentTable = new CodeFragmentTable();
             CustomOperationsList customOperationsList = new CustomOperationsList();
-            ExecutableBuilder eb = new ExecutableBuilder(codeFragmentTable, new Intern(customOperationsList, codeFragmentTable));
+            ExecutableBuilder eb = new ExecutableBuilder(codeFragmentTable, new Intern(customOperationsList, codeFragmentTable, ooIdGenerator));
             Executable ex = eb.fromExe(ch);
             assertEquals(7, ex.getNumSections());
             System.out.println("prims:" + ex.getPrims());

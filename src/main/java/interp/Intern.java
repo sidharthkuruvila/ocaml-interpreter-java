@@ -10,38 +10,58 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
-class CustomOperations {
+class CustomOperations<T> {
     String identifier;
-    Consumer<Value> finalize;
-    Comparator<Value> compare;
-    Function<Value, Integer> hash;
-    Function<Value, byte[]> serialize;
-    Function<byte[], Value> deserialize;
-    Comparator<Value> compareExt;
+    Consumer<T> finalize;
+    Comparator<T> compare;
+    Function<T, Integer> hash;
+    Function<T, byte[]> serialize;
+    Function<byte[], T> deserialize;
+    Comparator<T> compareExt;
     Long customFixedLength;
+}
+
+class IntCustomOperations extends CustomOperations<Long> {
+
+    static Long deserialize(byte[] bytes) {
+        long n = 0;
+        for(int i=0; i < 8; i++) {
+            n = n<<8 + bytes[i];
+        }
+        return n;
+    }
+    public IntCustomOperations() {
+        identifier = "_j";
+        compare = Long::compare;
+        hash = (Long a) -> a.hashCode();
+        deserialize = IntCustomOperations::deserialize;
+        customFixedLength = 8l;
+    }
+}
+
+class Channel {
+    //Fake fd
+    int fd;
+    public Channel(int fd) {
+        this.fd = fd;
+    }
+}
+
+class ChannelCustomOperations extends CustomOperations<Channel> {
+    public ChannelCustomOperations() {
+        identifier = "_chan";
+    }
+
 }
 
 class CustomOperationsList {
     private final List<CustomOperations> customOperationsList = new ArrayList<>();
 
-    static Value deserialize(byte[] bytes) {
-        long n = 0;
-        for(int i=0; i < 8; i++) {
-            n = n<<8 + bytes[i];
-        }
-        return new LongValue(n);
-    }
+
 
     public CustomOperationsList() {
-        CustomOperations intCustomOperations = new CustomOperations();
-        intCustomOperations.identifier = "_j";
-        intCustomOperations.compare = Comparator.comparingLong((Value a) -> ((LongValue) a).getValue());
-        intCustomOperations.hash = (Value a) -> Long.hashCode(((LongValue)a).getValue());
-        intCustomOperations.deserialize = CustomOperationsList::deserialize;
-        intCustomOperations.customFixedLength = 8l;
-        customOperationsList.add(intCustomOperations);
+        customOperationsList.add(new IntCustomOperations());
     }
 
     CustomOperations findCustomOperations(String ident) {
@@ -62,6 +82,10 @@ class CustomOperationsValue implements Value {
     public CustomOperationsValue(CustomOperations customOperations, Object data) {
         this.customOperations = customOperations;
         this.data = data;
+    }
+
+    public Object getData() {
+        return data;
     }
 }
 
@@ -139,21 +163,17 @@ class ObjectValue implements Value {
     Value getField(int field) {
         return fields.get(field);
     }
-}
 
-class LongValue implements Value {
-    private long value;
-
-    public LongValue(long value) {
-        this.value = value;
+    int getSize() {
+        return fields.size();
     }
 
-    long getValue() {
-        return value;
+    public int getTag() {
+        return tag;
     }
 
-    void setValue(long value) {
-        this.value = value;
+    public String toString() {
+        return String.format("Block{%s}", fields);
     }
 }
 
@@ -163,6 +183,10 @@ class DoubleValue implements Value {
     public DoubleValue(double value) {
         this.value = value;
     }
+
+    public double getValue() {
+        return value;
+    }
 }
 
 class DoubleArray implements Value {
@@ -171,6 +195,18 @@ class DoubleArray implements Value {
     public DoubleArray(double[] values){
         this.values = values;
     }
+
+    public double getField(int i) {
+        return values[i];
+    }
+
+    public void setField(int i, double value) {
+        values[i] = value;
+    }
+
+    public int getSize() {
+        return values.length;
+    }
 }
 
 class StringValue implements Value {
@@ -178,6 +214,22 @@ class StringValue implements Value {
 
     public StringValue(byte[] bytes) {
         this.bytes = bytes;
+    }
+
+    public int get(int index) {
+        return 0xff & bytes[0];
+    }
+
+    public void set(int index, int value) {
+        bytes[index] = (byte)value;
+    }
+
+    public String toString() {
+        return new String(bytes);
+    }
+
+    public String getString() {
+        return new String(bytes);
     }
 }
 
@@ -241,14 +293,17 @@ public class Intern {
     static final int CODE_CUSTOM_FIXED = 0x19;
 
     static final int Object_tag = 248;
+    static final int Closure_tag = 247;
 
 
     private final CodeFragmentTable codeFragmentTable;
+    private final OOIdGenerator ooIdGenerator;
     private final CustomOperationsList customOperationsList;
 
-    public Intern(CustomOperationsList customOperationsList, CodeFragmentTable codeFragmentTable) {
+    public Intern(CustomOperationsList customOperationsList, CodeFragmentTable codeFragmentTable, OOIdGenerator ooIdGenerator) {
         this.customOperationsList = customOperationsList;
         this.codeFragmentTable = codeFragmentTable;
+        this.ooIdGenerator = ooIdGenerator;
     }
 
     public Value inputValue(InputStream is) throws IOException {
@@ -491,13 +546,10 @@ public class Intern {
         }
     }
 
-    long lastOOId = 0;
-
     private void setOOId(ObjectValue o) {
         Value v = o.getField(1);
         if (v instanceof LongValue) {
-            lastOOId += 1;
-            ((LongValue) v).setValue(lastOOId);
+            ((LongValue) v).setValue(ooIdGenerator.nextId());
         }
     }
 }
