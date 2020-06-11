@@ -1,5 +1,6 @@
 package interp;
 
+import interp.customoperations.CustomOperationsList;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 import java.io.File;
@@ -15,6 +16,7 @@ public class ExecutableBuilderTest {
             FileChannel ch = FileChannel.open(path);
             CodeFragmentTable codeFragmentTable = new CodeFragmentTable();
             CustomOperationsList customOperationsList = new CustomOperationsList();
+            OOIdGenerator ooIdGenerator = new OOIdGenerator();
             ExecutableBuilder eb = new ExecutableBuilder(codeFragmentTable, new Intern(customOperationsList, codeFragmentTable, ooIdGenerator));
             Executable ex = eb.fromExe(ch);
             assertEquals(7, ex.getNumSections());

@@ -1,6 +1,8 @@
 package interp;
 
-import org.checkerframework.checker.units.qual.C;
+import interp.customoperations.CustomOperations;
+import interp.customoperations.CustomOperationsList;
+import interp.customoperations.CustomOperationsValue;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -8,86 +10,7 @@ import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
-class CustomOperations<T> {
-    String identifier;
-    Consumer<T> finalize;
-    Comparator<T> compare;
-    Function<T, Integer> hash;
-    Function<T, byte[]> serialize;
-    Function<byte[], T> deserialize;
-    Comparator<T> compareExt;
-    Long customFixedLength;
-}
-
-class IntCustomOperations extends CustomOperations<Long> {
-
-    static Long deserialize(byte[] bytes) {
-        long n = 0;
-        for(int i=0; i < 8; i++) {
-            n = n<<8 + bytes[i];
-        }
-        return n;
-    }
-    public IntCustomOperations() {
-        identifier = "_j";
-        compare = Long::compare;
-        hash = (Long a) -> a.hashCode();
-        deserialize = IntCustomOperations::deserialize;
-        customFixedLength = 8l;
-    }
-}
-
-class Channel {
-    //Fake fd
-    int fd;
-    public Channel(int fd) {
-        this.fd = fd;
-    }
-}
-
-class ChannelCustomOperations extends CustomOperations<Channel> {
-    public ChannelCustomOperations() {
-        identifier = "_chan";
-    }
-
-}
-
-class CustomOperationsList {
-    private final List<CustomOperations> customOperationsList = new ArrayList<>();
-
-
-
-    public CustomOperationsList() {
-        customOperationsList.add(new IntCustomOperations());
-    }
-
-    CustomOperations findCustomOperations(String ident) {
-        for(CustomOperations customOperations : customOperationsList) {
-            if(ident.equals(customOperations.identifier)){
-                return customOperations;
-            }
-        }
-        throw new RuntimeException("No custom operations found");
-    }
-}
-
-
-class CustomOperationsValue implements Value {
-    private final CustomOperations customOperations;
-    private final Object data;
-
-    public CustomOperationsValue(CustomOperations customOperations, Object data) {
-        this.customOperations = customOperations;
-        this.data = data;
-    }
-
-    public Object getData() {
-        return data;
-    }
-}
 
 class CodeFragment {
     final byte[] code;

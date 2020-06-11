@@ -1,8 +1,8 @@
 package interp;
 
-import interp.primitives.Primitive;
-import interp.primitives.PrimitiveRegistry;
-import interp.primitives.Primitives;
+import interp.customoperations.CustomOperationsList;
+import interp.customoperations.CustomOperationsValue;
+import interp.primitives.*;
 
 import java.io.IOException;
 import java.nio.channels.FileChannel;
@@ -83,40 +83,8 @@ class Int64FloatOfBits implements Primitive{
     }
 }
 
-class MlOpenDescriptorIn implements Primitive {
-
-    @Override
-    public Value call(Value[] values) {
-        int fd = ((LongValue)values[0]).getIntValue();
-        return new CustomOperationsValue(new ChannelCustomOperations(), new Channel(fd));
-    }
-
-    @Override
-    public String getName() {
-        return "caml_ml_open_descriptor_in";
-    }
-}
-
-class MlOpenDescriptorOut implements Primitive {
-
-    @Override
-    public Value call(Value[] values) {
-        int fd = ((LongValue)values[0]).getIntValue();
-        return new CustomOperationsValue(new ChannelCustomOperations(), new Channel(fd));
-    }
-
-    @Override
-    public String getName() {
-        return "caml_ml_open_descriptor_out";
-    }
-}
-
-
-
 
 public class Startup {
-
-
     public static void main(String[] args) throws IOException {
         try {
             OOIdGenerator ooIdGenerator = new OOIdGenerator();
@@ -136,14 +104,17 @@ public class Startup {
             primitiveRegistry.addPrimitive(new Int64FloatOfBits());
             primitiveRegistry.addPrimitive(new MlOpenDescriptorIn());
             primitiveRegistry.addPrimitive(new MlOpenDescriptorOut());
+            primitiveRegistry.addPrimitive(new MlOutputCharPrimitive());
+            primitiveRegistry.addPrimitive(new MlFlush());
 
 
             Primitives primitives = primitiveRegistry.getPrimitives(e.getPrims());
             Interpreter interpreter = new Interpreter(e.getGlobalData(), primitives);
-            HexPrinter.printBytes(e.getCodeFragment().code);
+//            HexPrinter.printBytes(e.getCodeFragment().code);
+
             interpreter.interpret(e.getCodeFragment().code);
             System.out.println(e);
-        } catch (Throwable e) {
+        } catch (Exception e) {
             e.printStackTrace();
             System.out.println("We shouldsee more");
 //            throw new RuntimeException(e);

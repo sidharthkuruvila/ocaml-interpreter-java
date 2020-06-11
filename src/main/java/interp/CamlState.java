@@ -1,5 +1,7 @@
 package interp;
 
+import interp.stack.StackPointer;
+
 public class CamlState {
     private StackPointer trapSp = null;
     private boolean backTraceActive;

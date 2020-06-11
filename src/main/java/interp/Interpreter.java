@@ -1,6 +1,8 @@
 package interp;
 
 import interp.primitives.Primitives;
+import interp.stack.StackPointer;
+import interp.stack.ValueStack;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,50 +23,6 @@ class InfixOffsetValue implements Value {
 
     public InfixOffsetValue(int size) {
         this.size = size;
-    }
-}
-
-class ValueStack {
-
-
-    private final List<Value> stack = new ArrayList<>();
-
-    public void push(Value value) {
-        stack.add(value);
-    }
-
-    public Value get(int i) {
-        return stack.get(indexAt(i));
-    }
-
-    public void popNIgnore(int n) {
-        int end = stack.size() - 1;
-        for (int i = 0; i > n; i++) {
-            stack.remove(end - i);
-        }
-    }
-
-    public void set(int i, Value value) {
-        stack.set(indexAt(i), value);
-    }
-
-    private int indexAt(int i) {
-        return stack.size() - 1 - i;
-    }
-
-    public StackPointer pointer() {
-        return new StackPointer(stack.size());
-    }
-
-    public void reset(StackPointer externSp) {
-        int oldLen = stack.size();
-        int newLen = externSp.getSize();
-        assert newLen < oldLen;
-        popNIgnore(oldLen - newLen);
-    }
-
-    public Value pop() {
-        return stack.remove(indexAt(0));
     }
 }
 
@@ -202,6 +160,7 @@ public class Interpreter {
         while (true) {
             Instructions currInstr = instructions[pc.get()];
             pc = pc.inc();
+            System.out.println(currInstr);
             switch (currInstr) {
                 case ACC0:
                     accu = stack.get(0);
@@ -318,7 +277,7 @@ public class Interpreter {
                     continue;
                 case APPLY: {
                     extraArgs = pc.get() - 1;
-                    pc = (CodePointer) accu;
+                    pc = (CodePointer) ((ObjectValue) accu).getField(0);
                     env = accu;
                     continue;
                 }
@@ -328,7 +287,7 @@ public class Interpreter {
                     stack.push(env);
                     stack.push(pc);
                     stack.push(arg1);
-                    pc = (CodePointer) accu;
+                    pc = (CodePointer) ((ObjectValue) accu).getField(0);
                     env = accu; //What's happening here? why is the env the programme counter?
                     extraArgs = 0;
                     checkStacks();
@@ -342,7 +301,7 @@ public class Interpreter {
                     stack.push(pc);
                     stack.push(arg2);
                     stack.push(arg1);
-                    pc = (CodePointer) accu;
+                    pc = (CodePointer) ((ObjectValue) accu).getField(0);
                     env = accu; //What's happening here? why is the env the programme counter?
                     extraArgs = 1;
                     checkStacks();
@@ -360,7 +319,7 @@ public class Interpreter {
                     stack.push(arg1);
 
 
-                    pc = (CodePointer) accu;
+                    pc = (CodePointer) ((ObjectValue) accu).getField(0);
                     env = accu; //What's happening here? why is the env the programme counter?
                     extraArgs = 2;
                     checkStacks();
@@ -381,7 +340,7 @@ public class Interpreter {
                     for (Value arg : args) {
                         stack.push(arg);
                     }
-                    pc = (CodePointer) accu;
+                    pc = (CodePointer) ((ObjectValue) accu).getField(0);
                     env = accu;
                     extraArgs += nargs - 1;
                     checkStacks();
@@ -391,7 +350,7 @@ public class Interpreter {
                     Value arg1 = stack.get(0);
                     stack.popNIgnore(pc.get());
                     stack.push(arg1);
-                    pc = (CodePointer) accu;
+                    pc = (CodePointer) ((ObjectValue) accu).getField(0);
                     env = accu;
                     checkStacks();
                     continue;
@@ -402,7 +361,7 @@ public class Interpreter {
                     stack.popNIgnore(pc.get());
                     stack.push(arg2);
                     stack.push(arg1);
-                    pc = (CodePointer) accu;
+                    pc = (CodePointer) ((ObjectValue) accu).getField(0);
                     env = accu;
                     extraArgs += 1;
                     checkStacks();
@@ -416,7 +375,7 @@ public class Interpreter {
                     stack.push(arg3);
                     stack.push(arg2);
                     stack.push(arg1);
-                    pc = (CodePointer) accu;
+                    pc = (CodePointer) ((ObjectValue) accu).getField(0);
                     env = accu;
                     extraArgs += 2;
                     checkStacks();
@@ -482,13 +441,14 @@ public class Interpreter {
                     }
 
                     ObjectValue o = new ObjectValue(Intern.Closure_tag, 2 + nVars);
-
+                    accu = o;
                     for (int i = 0; i < nVars; i++) {
                         o.setField(i + 2, stack.get(i));
                     }
 
                     o.setField(0, pc.incN(pc.get()));
                     o.setField(1, new ClosInfoValue(0, 2));
+
                     pc = pc.inc();
                     stack.popNIgnore(nVars);
                     continue;
@@ -526,16 +486,20 @@ public class Interpreter {
 
                 case PUSHOFFSETCLOSURE:
                     stack.push(accu);
-                case OFFSETCLOSURE:
-                    accu = ((CodePointer) env).incN(pc.get());
+                case OFFSETCLOSURE: {
+                    int offset = pc.get();
+                    pc = pc.inc();
+                    accu = ((StackPointer) env).incN(-1*offset);
                     pc = pc.inc();
                     continue;
+                }
 
                 case PUSHOFFSETCLOSUREM2:
                     stack.push(accu);
-                case OFFSETCLOSUREM2:
-                    accu = ((CodePointer) env).incN(-2);
+                case OFFSETCLOSUREM2: {
+                    accu = ((StackPointer) env).incN(2);
                     continue;
+                }
 
                 case PUSHOFFSETCLOSURE0:
                     stack.push(accu);
@@ -546,7 +510,7 @@ public class Interpreter {
                 case PUSHOFFSETCLOSURE2:
                     stack.push(accu);
                 case OFFSETCLOSURE2:
-                    accu = ((CodePointer) env).incN(2);
+                    accu = ((StackPointer) env).incN(-2);
                     continue;
 
 
@@ -574,7 +538,7 @@ public class Interpreter {
 
                 case SETGLOBAL:
                     globalData.setField(pc.get(), accu);
-                    pc.inc();
+                    pc = pc.inc();
                     accu = valUnit;
                     continue;
 
@@ -604,9 +568,9 @@ public class Interpreter {
                     ObjectValue o = new ObjectValue(tag, woSize);
                     o.setField(0, accu);
                     for (int i = 1; i < woSize; i++) {
-                        o.setField(i, stack.get(i - 1));
+                        o.setField(i, stack.pop());
                     }
-                    stack.popNIgnore(woSize - 1);
+//                    stack.popNIgnore(woSize - 1);
                     accu = o;
                     continue;
                 }
@@ -854,7 +818,7 @@ public class Interpreter {
 
                     //Restore_after_c_call
                     stack.reset(camlState.getExternSp());
-                    env = camlState.getExternSp();
+                    env = stack.get(0);
                     stack.popNIgnore(2);
                     pc = pc.inc();
                     continue;
@@ -870,7 +834,7 @@ public class Interpreter {
 
                     //Restore_after_c_call
                     stack.reset(camlState.getExternSp());
-                    env = camlState.getExternSp();
+                    env = stack.get(0);
                     stack.popNIgnore(3);
                     pc = pc.inc();
                     continue;
@@ -886,7 +850,7 @@ public class Interpreter {
 
                     //Restore_after_c_call
                     stack.reset(camlState.getExternSp());
-                    env = camlState.getExternSp();
+                    env = stack.get(0);
                     stack.popNIgnore(4);
                     pc = pc.inc();
                     continue;
@@ -902,7 +866,7 @@ public class Interpreter {
 
                     //Restore_after_c_call
                     stack.reset(camlState.getExternSp());
-                    env = camlState.getExternSp();
+                    env = stack.get(0);
                     stack.popNIgnore(5);
                     pc = pc.inc();
                     continue;
@@ -918,7 +882,7 @@ public class Interpreter {
 
                     //Restore_after_c_call
                     stack.reset(camlState.getExternSp());
-                    env = camlState.getExternSp();
+                    env = stack.get(0);
                     stack.popNIgnore(6);
                     pc = pc.inc();
                     continue;
@@ -942,7 +906,7 @@ public class Interpreter {
 
                     //Restore_after_c_call
                     stack.reset(camlState.getExternSp());
-                    env = camlState.getExternSp();
+                    env = stack.get(0);
                     stack.popNIgnore(2 + nargs - 1);
                     pc = pc.inc();
                     continue;
