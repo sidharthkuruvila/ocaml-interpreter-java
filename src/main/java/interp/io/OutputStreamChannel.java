@@ -33,4 +33,13 @@ public class OutputStreamChannel implements Channel {
             throw new RuntimeException(e);
         }
     }
+
+    @Override
+    public void writeBytes(byte[] bytes, int offset, int length) {
+        try {
+            os.write(bytes, offset, length);
+        } catch (IOException e)  {
+            throw new RuntimeException(e);
+        }
+    }
 }

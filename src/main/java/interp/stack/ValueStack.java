@@ -12,9 +12,6 @@ public class ValueStack {
     final List<Value> stack = new ArrayList<>();
 
     public void push(Value value) {
-        if(value instanceof CodePointer && ((CodePointer) value).index == 2796) {
-            System.out.println("Found code pointer");
-        }
         stack.add(value);
     }
 

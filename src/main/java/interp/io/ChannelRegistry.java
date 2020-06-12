@@ -15,7 +15,7 @@ public class ChannelRegistry {
     private final List<CustomOperationsValue> channelList =
             new ArrayList<>(Arrays.asList(new CustomOperationsValue[]{
                     new CustomOperationsValue(
-                            new ChannelCustomOperations(), new OutputStreamChannel(System.out)),
+                            new ChannelCustomOperations(), new InputStreamChannel(System.in)),
                     new CustomOperationsValue(
                             new ChannelCustomOperations(), new OutputStreamChannel(System.out)),
                     new CustomOperationsValue(
@@ -28,9 +28,12 @@ public class ChannelRegistry {
 
     public Value outChannelList() {
         Value res = Val_emptylist;
-        for (CustomOperationsValue channel : channelList) {
+        for (CustomOperationsValue channelOperationsValue : channelList) {
+            if(! (channelOperationsValue.getData() instanceof OutputStreamChannel)) {
+                continue;
+            }
             ObjectValue o = new ObjectValue(Pair_tag, 2);
-            o.setField(0, channel);
+            o.setField(0, channelOperationsValue);
             o.setField(1, res);
             res = o;
         }

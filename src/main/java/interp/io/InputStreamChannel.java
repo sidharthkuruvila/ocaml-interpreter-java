@@ -28,4 +28,9 @@ public class InputStreamChannel implements Channel {
     public void flush() {
         throw new RuntimeException("Operation no supported");
     }
+
+    @Override
+    public void writeBytes(byte[] bytes, int offset, int length) {
+        throw new RuntimeException("Operation no supported");
+    }
 }

@@ -4,6 +4,7 @@ import interp.customoperations.CustomOperationsList;
 import interp.customoperations.CustomOperationsValue;
 import interp.io.ChannelRegistry;
 import interp.primitives.*;
+import interp.value.StringValue;
 import interp.value.Value;
 
 import java.io.IOException;
@@ -111,6 +112,8 @@ public class Startup {
             primitiveRegistry.addPrimitive(new MlOutChannelsList(channelRegistry));
             primitiveRegistry.addPrimitive(new MlOutputCharPrimitive());
             primitiveRegistry.addPrimitive(new MlFlush());
+            primitiveRegistry.addPrimitive(new MlStringLength());
+            primitiveRegistry.addPrimitive(new MlOutput());
 
 
             Primitives primitives = primitiveRegistry.getPrimitives(e.getPrims());
@@ -118,7 +121,6 @@ public class Startup {
 //            HexPrinter.printBytes(e.getCodeFragment().code);
 
             interpreter.interpret(e.getCodeFragment().code);
-            System.out.println(e);
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("We shouldsee more");

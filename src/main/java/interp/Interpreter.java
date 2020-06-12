@@ -4,6 +4,7 @@ import interp.primitives.Primitives;
 import interp.stack.StackPointer;
 import interp.stack.ValueStack;
 import interp.value.ObjectValue;
+import interp.value.StringValue;
 import interp.value.Value;
 
 import java.util.ArrayList;
@@ -33,13 +34,13 @@ class Code {
 
     public Code(byte[] codeBytes) {
         assert codeBytes.length % 4 == 0;
-        int [] code = new int[codeBytes.length/4];
-        for(int i = 0; i< codeBytes.length; i += 4) {
+        int[] code = new int[codeBytes.length / 4];
+        for (int i = 0; i < codeBytes.length; i += 4) {
             int ch4 = 0xFF & codeBytes[i];
             int ch3 = 0xFF & codeBytes[i + 1];
             int ch2 = 0xFF & codeBytes[i + 2];
             int ch1 = 0xFF & codeBytes[i + 3];
-            code[i/4] = (ch1 << 24) + (ch2 << 16) + (ch3 << 8) + (ch4 << 0);
+            code[i / 4] = (ch1 << 24) + (ch2 << 16) + (ch3 << 8) + (ch4 << 0);
         }
         this.code = code;
     }
@@ -114,7 +115,7 @@ public class Interpreter {
         this.primitives = primitives;
     }
 
-    public void interpret(byte[] codeBytes) {
+    public Value interpret(byte[] codeBytes) {
         List<Instructions> instructionTrace = new ArrayList<>();
         ValueStack stack = new ValueStack();
         Value accu = null;
@@ -130,7 +131,7 @@ public class Interpreter {
         while (true) {
             Instructions currInstr = instructions[pc.get()];
             pc = pc.inc();
-            System.out.println(currInstr);
+//            System.out.println(currInstr);
             instructionTrace.add(currInstr);
             switch (currInstr) {
                 case ACC0:
@@ -460,7 +461,7 @@ public class Interpreter {
                 case OFFSETCLOSURE: {
                     int offset = pc.get();
                     pc = pc.inc();
-                    accu = ((StackPointer) env).incN(-1*offset);
+                    accu = ((StackPointer) env).incN(-1 * offset);
                     pc = pc.inc();
                     continue;
                 }
@@ -577,7 +578,6 @@ public class Interpreter {
                     continue;
                 }
 
-
                 case MAKEFLOATBLOCK: {
                     int size = pc.get();
                     pc = pc.inc();
@@ -684,7 +684,7 @@ public class Interpreter {
 
                 case BRANCH:
                     pc = pc.incN(pc.get());
-                     continue;
+                    continue;
                 case BRANCHIF:
                     if (!accu.equals(valFalse)) {
                         pc = pc.incN(pc.get());
@@ -1085,6 +1085,8 @@ public class Interpreter {
 //    Instruct(ISINT):
 //      accu = Val_long(accu & 1);
 //      Next;
+                case STOP:
+                    return accu;
                 default: {
                     throw new RuntimeException(String.format("Instruction %s not implemented", currInstr));
                 }

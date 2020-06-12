@@ -9,5 +9,7 @@ public interface Channel {
     int readByte();
     void writeByte(int b);
     void flush();
+
+    void writeBytes(byte[] bytes, int offset, int length);
 }
 

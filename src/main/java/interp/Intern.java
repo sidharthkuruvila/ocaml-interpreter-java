@@ -4,6 +4,7 @@ import interp.customoperations.CustomOperations;
 import interp.customoperations.CustomOperationsList;
 import interp.customoperations.CustomOperationsValue;
 import interp.value.ObjectValue;
+import interp.value.StringValue;
 import interp.value.Value;
 
 import java.io.DataInputStream;
@@ -103,30 +104,6 @@ class DoubleArray implements Value {
     }
 }
 
-class StringValue implements Value {
-    private final byte[] bytes;
-
-    public StringValue(byte[] bytes) {
-        this.bytes = bytes;
-    }
-
-    public int get(int index) {
-        return 0xff & bytes[0];
-    }
-
-    public void set(int index, int value) {
-        bytes[index] = (byte)value;
-    }
-
-    public String toString() {
-        return new String(bytes);
-    }
-
-    public String getString() {
-        return new String(bytes);
-    }
-}
-
 class Header {
     private boolean isBig;
     private long dataLength;
@@ -223,9 +200,6 @@ public class Intern {
          */
 
         Header header;
-        System.out.printf("big magic   %08X\n", magic_number_big);
-        System.out.printf("small magic %08X\n", magic_number_small);
-        System.out.printf("magic       %08X\n", magic);
         if (magic == magic_number_small) {
             int dataLength = dis.readInt();
             int numObjects = dis.readInt();

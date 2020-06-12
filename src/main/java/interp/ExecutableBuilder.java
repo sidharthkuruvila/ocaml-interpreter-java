@@ -31,7 +31,7 @@ public class ExecutableBuilder {
         channel.read(bf);
         long numSections = Util.getUint32(bf, 0);
         String magic = getAsciiString(bf, 4, 12);
-        System.out.println(magic);
+//        System.out.println(magic);
 
         // Get the sections names and sizes
         long tocSize = numSections * 8;
@@ -45,7 +45,6 @@ public class ExecutableBuilder {
             channel.read(bf4);
             long n = Util.getUint32(bf4, 0);
             bf4.clear();
-            System.out.printf("%s:%d\n", s, n);
             sections.add(new Executable.Section(s, new byte[(int)n]));
         }
 
