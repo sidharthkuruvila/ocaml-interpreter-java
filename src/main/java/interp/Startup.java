@@ -2,7 +2,9 @@ package interp;
 
 import interp.customoperations.CustomOperationsList;
 import interp.customoperations.CustomOperationsValue;
+import interp.io.ChannelRegistry;
 import interp.primitives.*;
+import interp.value.Value;
 
 import java.io.IOException;
 import java.nio.channels.FileChannel;
@@ -99,11 +101,14 @@ public class Startup {
             Executable e = exb.fromExe(fc);
             NamedValues namedValues = new NamedValues();
 
+            ChannelRegistry channelRegistry = new ChannelRegistry();
+
             primitiveRegistry.addPrimitive(new RegisterNamedValuePrimitive(namedValues));
             primitiveRegistry.addPrimitive(new FreshOOIdPrimitive(ooIdGenerator));
             primitiveRegistry.addPrimitive(new Int64FloatOfBits());
-            primitiveRegistry.addPrimitive(new MlOpenDescriptorIn());
-            primitiveRegistry.addPrimitive(new MlOpenDescriptorOut());
+            primitiveRegistry.addPrimitive(new MlOpenDescriptorIn(channelRegistry));
+            primitiveRegistry.addPrimitive(new MlOpenDescriptorOut(channelRegistry));
+            primitiveRegistry.addPrimitive(new MlOutChannelsList(channelRegistry));
             primitiveRegistry.addPrimitive(new MlOutputCharPrimitive());
             primitiveRegistry.addPrimitive(new MlFlush());
 

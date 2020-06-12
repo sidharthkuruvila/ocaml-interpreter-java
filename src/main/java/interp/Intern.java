@@ -3,6 +3,8 @@ package interp;
 import interp.customoperations.CustomOperations;
 import interp.customoperations.CustomOperationsList;
 import interp.customoperations.CustomOperationsValue;
+import interp.value.ObjectValue;
+import interp.value.Value;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -28,7 +30,7 @@ class CodeFragment {
     }
 }
 
-class CodePointerValue implements Value{
+class CodePointerValue implements Value {
     private final CodeFragment codeFragment;
     private final int offset;
 
@@ -66,36 +68,6 @@ class Atom implements Value {
 
     public Atom(int tag) {
         this.tag = tag;
-    }
-}
-
-class ObjectValue implements Value {
-    private final int tag;
-    private final List<Value> fields;
-
-    public ObjectValue(int tag, int size) {
-        this.tag = tag;
-        fields = Arrays.asList(new Value[size]);
-    }
-
-    void setField(int field, Value value) {
-        fields.set(field, value);
-    }
-
-    Value getField(int field) {
-        return fields.get(field);
-    }
-
-    int getSize() {
-        return fields.size();
-    }
-
-    public int getTag() {
-        return tag;
-    }
-
-    public String toString() {
-        return String.format("Block{%s}", fields);
     }
 }
 

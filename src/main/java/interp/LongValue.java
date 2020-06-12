@@ -1,5 +1,7 @@
 package interp;
 
+import interp.value.Value;
+
 import static interp.Interpreter.valFalse;
 import static interp.Interpreter.valTrue;
 

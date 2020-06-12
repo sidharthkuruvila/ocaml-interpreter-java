@@ -1,24 +1,22 @@
 package interp.primitives;
 
 import interp.LongValue;
-import interp.Value;
-import interp.customoperations.CustomOperationsValue;
-import interp.io.Channel;
-import interp.io.ChannelCustomOperations;
-
-import java.io.FileDescriptor;
-import java.io.FileOutputStream;
+import interp.value.Value;
+import interp.io.ChannelRegistry;
 
 public class MlOpenDescriptorIn implements Primitive {
+
+    private final ChannelRegistry channelRegistry;
+
+    public MlOpenDescriptorIn(ChannelRegistry channelRegistry) {
+
+        this.channelRegistry = channelRegistry;
+    }
 
     @Override
     public Value call(Value[] values) {
         int fd = ((LongValue)values[0]).getIntValue();
-        if(fd == 0) {
-            return new CustomOperationsValue(new ChannelCustomOperations(), new Channel(new FileOutputStream(FileDescriptor.in).getChannel()));
-        } else {
-            throw new RuntimeException("Unknown descriptor");
-        }
+        return channelRegistry.getChannel(fd);
     }
 
     @Override

@@ -1,15 +1,13 @@
 package interp.io;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.channels.FileChannel;
 
-public class Channel {
-    //Fake fd
-    FileChannel ch;
-    public Channel(FileChannel ch) {
-        this.ch = ch;
-    }
-
-    public FileChannel getFileChannel() {
-        return ch;
-    }
+public interface Channel {
+    int readByte();
+    void writeByte(int b);
+    void flush();
 }
+

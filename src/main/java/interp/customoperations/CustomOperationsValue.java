@@ -1,6 +1,6 @@
 package interp.customoperations;
 
-import interp.Value;
+import interp.value.Value;
 
 public class CustomOperationsValue implements Value {
     private final CustomOperations customOperations;

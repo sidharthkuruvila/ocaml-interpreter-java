@@ -1,7 +1,7 @@
 package interp.stack;
 import static org.junit.jupiter.api.Assertions.*;
 import interp.LongValue;
-import interp.Value;
+import interp.value.Value;
 import org.junit.jupiter.api.Test;
 
 public class StackTest {

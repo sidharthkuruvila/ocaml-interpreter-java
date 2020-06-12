@@ -1,6 +1,7 @@
 package interp.stack;
 
-import interp.Value;
+import interp.CodePointer;
+import interp.value.Value;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +12,9 @@ public class ValueStack {
     final List<Value> stack = new ArrayList<>();
 
     public void push(Value value) {
+        if(value instanceof CodePointer && ((CodePointer) value).index == 2796) {
+            System.out.println("Found code pointer");
+        }
         stack.add(value);
     }
 

@@ -3,6 +3,8 @@ package interp;
 import interp.primitives.Primitives;
 import interp.stack.StackPointer;
 import interp.stack.ValueStack;
+import interp.value.ObjectValue;
+import interp.value.Value;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,39 +42,6 @@ class Code {
             code[i/4] = (ch1 << 24) + (ch2 << 16) + (ch3 << 8) + (ch4 << 0);
         }
         this.code = code;
-    }
-}
-
-class CodePointer implements Value {
-    private final Code code;
-    private final int index;
-
-    public CodePointer(Code code, int index) {
-        this.code = code;
-        this.index = index;
-    }
-
-    public CodePointer inc() {
-        assert index + 1 < code.code.length;
-        return new CodePointer(code, index + 1);
-    }
-
-    public CodePointer dec() {
-        assert index - 1 >= 0;
-        return new CodePointer(code, index - 1);
-    }
-
-    public int get() {
-        return code.code[index];
-    }
-
-    public CodePointer incN(int i) {
-        assert index + i < code.code.length && index + i >= 0;
-        return new CodePointer(code, index + i);
-    }
-
-    public int getN(int n) {
-        return code.code[n + index];
     }
 }
 
@@ -146,6 +115,7 @@ public class Interpreter {
     }
 
     public void interpret(byte[] codeBytes) {
+        List<Instructions> instructionTrace = new ArrayList<>();
         ValueStack stack = new ValueStack();
         Value accu = null;
         int extraArgs = 0;
@@ -161,6 +131,7 @@ public class Interpreter {
             Instructions currInstr = instructions[pc.get()];
             pc = pc.inc();
             System.out.println(currInstr);
+            instructionTrace.add(currInstr);
             switch (currInstr) {
                 case ACC0:
                     accu = stack.get(0);
@@ -282,7 +253,7 @@ public class Interpreter {
                     continue;
                 }
                 case APPLY1: {
-                    Value arg1 = stack.get(0);
+                    Value arg1 = stack.pop();
                     stack.push(new LongValue(extraArgs));
                     stack.push(env);
                     stack.push(pc);
@@ -294,8 +265,8 @@ public class Interpreter {
                     continue;
                 }
                 case APPLY2: {
-                    Value arg1 = stack.get(0);
-                    Value arg2 = stack.get(1);
+                    Value arg1 = stack.pop();
+                    Value arg2 = stack.pop();
                     stack.push(new LongValue(extraArgs));
                     stack.push(env);
                     stack.push(pc);
@@ -308,12 +279,12 @@ public class Interpreter {
                     continue;
                 }
                 case APPLY3: {
-                    Value arg1 = stack.get(0);
-                    Value arg2 = stack.get(1);
-                    Value arg3 = stack.get(2);
+                    Value arg1 = stack.pop();
+                    Value arg2 = stack.pop();
+                    Value arg3 = stack.pop();
                     stack.push(new LongValue(extraArgs));
-                    stack.push(pc);
                     stack.push(env);
+                    stack.push(pc);
                     stack.push(arg3);
                     stack.push(arg2);
                     stack.push(arg1);
@@ -713,7 +684,7 @@ public class Interpreter {
 
                 case BRANCH:
                     pc = pc.incN(pc.get());
-                    continue;
+                     continue;
                 case BRANCHIF:
                     if (!accu.equals(valFalse)) {
                         pc = pc.incN(pc.get());
@@ -753,6 +724,7 @@ public class Interpreter {
                     stack.push(pc.incN(pc.get()));
                     pc = pc.inc();
                     camlState.setTrapSp(stack.pointer());
+                    continue;
                 }
 
                 case POPTRAP: {
@@ -763,9 +735,7 @@ public class Interpreter {
                         pc = pc.dec(); /* restart the POPTRAP after processing the signal */
                         processActions();
                     } else {
-                        //??This is strange we store the stack pointer and the reduce the stack by 4
-                        //So the pointer shouldn't be valid anymore.
-                        camlState.setTrapSp(stack.pointer());
+                        camlState.setTrapSp((StackPointer) stack.get(1));
                         stack.popNIgnore(4);
                     }
                     continue;
@@ -1102,6 +1072,21 @@ public class Interpreter {
                         pc = pc.incN(2);
                     }
                     continue;
+                }
+                case OFFSETINT:
+                    accu = new LongValue(pc.get());
+                    pc = pc.inc();
+                    continue;
+//    Instruct(OFFSETREF):
+//      Field(accu, 0) += *pc << 1;
+//      accu = Val_unit;
+//      pc++;
+//      Next;
+//    Instruct(ISINT):
+//      accu = Val_long(accu & 1);
+//      Next;
+                default: {
+                    throw new RuntimeException(String.format("Instruction %s not implemented", currInstr));
                 }
             }
         }

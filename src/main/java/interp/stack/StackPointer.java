@@ -1,6 +1,6 @@
 package interp.stack;
 
-import interp.Value;
+import interp.value.Value;
 
 public class StackPointer implements Value {
 

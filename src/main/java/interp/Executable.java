@@ -1,5 +1,8 @@
 package interp;
 
+import interp.value.ObjectValue;
+import interp.value.Value;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Arrays;

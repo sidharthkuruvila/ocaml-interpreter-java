@@ -1,6 +1,6 @@
 package interp.primitives;
 
-import interp.Value;
+import interp.value.Value;
 
 public interface Primitive {
     Value call(Value[] values);
