@@ -5,6 +5,7 @@ import interp.value.Value;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -45,7 +46,7 @@ public class Executable {
         prims = Arrays.asList(new String(primSection.getData()).split("\0"));
 
         Section dataSection = sectionMap.get("DATA");
-        globalData = intern.inputValue(new ByteArrayInputStream(dataSection.getData()));
+        globalData = intern.inputValue(ByteBuffer.wrap(dataSection.getData()));
 
         this.sections = sections;
     }

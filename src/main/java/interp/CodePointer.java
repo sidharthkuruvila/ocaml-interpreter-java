@@ -25,6 +25,10 @@ public class CodePointer implements Value {
         return code.code[index];
     }
 
+    public LongValue getLongValue() {
+        return new LongValue(get());
+    }
+
     public CodePointer incN(int i) {
         assert index + i < code.code.length && index + i >= 0;
         return new CodePointer(code, index + i);

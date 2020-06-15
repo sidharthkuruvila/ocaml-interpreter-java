@@ -1,14 +1,20 @@
 package interp;
 
+import interp.exceptions.DivideByZeroError;
 import interp.primitives.Primitives;
 import interp.stack.StackPointer;
 import interp.stack.ValueStack;
+import interp.value.DoubleValue;
 import interp.value.ObjectValue;
 import interp.value.StringValue;
 import interp.value.Value;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import static interp.value.Value.booleanValue;
 
 
 class ClosInfoValue implements Value {
@@ -48,6 +54,11 @@ class Code {
 
 
 public class Interpreter {
+    private static final Logger logger = Logger.getLogger(Interpreter.class.getName());
+
+    static {
+        logger.setLevel(Level.FINE);
+    }
 
     public static final Value valUnit = new LongValue(0);
     public static final LongValue valFalse = new LongValue(0);
@@ -131,7 +142,7 @@ public class Interpreter {
         while (true) {
             Instructions currInstr = instructions[pc.get()];
             pc = pc.inc();
-//            System.out.println(currInstr);
+            System.out.println(currInstr);
             instructionTrace.add(currInstr);
             switch (currInstr) {
                 case ACC0:
@@ -433,7 +444,6 @@ public class Interpreter {
                     pc = pc.inc();
                     int envOffset = nFuncs * 3 - 1;
                     int blkSize = envOffset + nVars;
-                    Value p;
                     if (nVars > 0) {
                         stack.push(accu);
                     }
@@ -446,11 +456,14 @@ public class Interpreter {
                     stack.push(accu);
                     o.setField(0, pc.incN(pc.get()));
                     o.setField(1, new ClosInfoValue(0, envOffset));
-                    for (int i = 1; i < nFuncs; i++) {
-                        o.setField(i * 3, new InfixOffsetValue(i * 3));
-                        o.setField(i * 3 + 1, pc.incN(pc.incN(i).get()));
+                    for (int i = 1, j = 2; i < nFuncs; i++, j++) {
+                        o.setField(j, new InfixOffsetValue(i * 3));
+                        j += 1;
+                        stack.push(o.atFieldId(j));
+                        o.setField(j, pc.incN(pc.incN(i).get()));
+                        j += 1;
                         envOffset -= 3;
-                        o.setField(i * 3 + 2, new ClosInfoValue(0, envOffset));
+                        o.setField(j, new ClosInfoValue(0, envOffset));
                     }
                     pc = pc.incN(nFuncs);
                     continue;
@@ -917,7 +930,7 @@ public class Interpreter {
                     stack.push(accu);
                     /* Fallthrough */
                 case CONSTINT:
-                    accu = new LongValue(pc.get());
+                    accu = pc.getLongValue();
                     pc = pc.inc();
                     continue;
 
@@ -940,21 +953,21 @@ public class Interpreter {
                     continue;
 
                 case DIVINT: {
-                    long divisor = ((LongValue) stack.pop()).getValue();
-                    if (divisor == 0) {
+                    try {
+                        accu = ((LongValue) accu).div((LongValue) stack.pop());
+                    } catch (DivideByZeroError e) {
                         setupForCCall();
                         raiseZeroDivide();
                     }
-                    accu = ((LongValue) accu).mul((LongValue) stack.pop());
                     continue;
                 }
                 case MODINT: {
-                    long divisor = ((LongValue) stack.pop()).getValue();
-                    if (divisor == 0) {
+                    try {
+                        accu = ((LongValue) accu).mod((LongValue) stack.pop());
+                    } catch (DivideByZeroError e) {
                         setupForCCall();
                         raiseZeroDivide();
                     }
-                    accu = ((LongValue) accu).mod((LongValue) stack.pop());
                     continue;
                 }
                 case ANDINT:
@@ -972,6 +985,8 @@ public class Interpreter {
                     continue;
                     //?? Should we be treating unsigned and signed differently?
                 case LSRINT:
+                    accu = ((LongValue) accu).ulsr((LongValue) stack.pop());
+                    continue;
                 case ASRINT:
                     accu = ((LongValue) accu).lsr((LongValue) stack.pop());
                     continue;
@@ -1074,7 +1089,7 @@ public class Interpreter {
                     continue;
                 }
                 case OFFSETINT:
-                    accu = new LongValue(pc.get());
+                    accu = ((LongValue)accu).add(pc.getLongValue());
                     pc = pc.inc();
                     continue;
 //    Instruct(OFFSETREF):
@@ -1082,9 +1097,10 @@ public class Interpreter {
 //      accu = Val_unit;
 //      pc++;
 //      Next;
-//    Instruct(ISINT):
-//      accu = Val_long(accu & 1);
-//      Next;
+                case ISINT: {
+                    accu = booleanValue(accu instanceof LongValue);
+                    continue;
+                }
                 case STOP:
                     return accu;
                 default: {
@@ -1158,6 +1174,12 @@ public class Interpreter {
 //        }
     }
 
+
+    private void debug(String message, Object... inserts) {
+        if (logger.getLevel() == Level.FINE) {
+            logger.fine(String.format(message, inserts));
+        }
+    }
 
     private Value getField(Value env, int i) {
         return ((ObjectValue) env).getField(i);

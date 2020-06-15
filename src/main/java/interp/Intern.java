@@ -3,17 +3,87 @@ package interp;
 import interp.customoperations.CustomOperations;
 import interp.customoperations.CustomOperationsList;
 import interp.customoperations.CustomOperationsValue;
+import interp.value.DoubleValue;
 import interp.value.ObjectValue;
 import interp.value.StringValue;
 import interp.value.Value;
 
-import java.io.DataInputStream;
+import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
-import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
+
+@NotThreadSafe
+class DataInStream {
+    private int index = 0;
+    private int prevIndex = 0;
+
+    private final ByteBuffer bf;
+
+    public DataInStream(ByteBuffer bf){
+        this.bf = bf;
+    }
+
+    public int readUnsignedByte() throws IOException {
+        prevIndex = index;
+        index+=Byte.BYTES;
+        return 0xFF & bf.get(prevIndex);
+    }
+
+    public int readInt() {
+        prevIndex = index;
+        index+= Integer.BYTES;
+        return bf.getInt(prevIndex);
+    }
+
+    public long readLong() {
+        prevIndex = index;
+        index+=Long.BYTES;
+        return bf.getInt(prevIndex);
+    }
+
+    public byte readByte() {
+        prevIndex = index;
+        index+=Byte.BYTES;
+        return bf.get(prevIndex);
+    }
+
+    public short readShort() {
+        prevIndex = index;
+        index+=Short.BYTES;
+        return bf.getShort(prevIndex);
+    }
+
+    public int readChar() {
+        prevIndex = index;
+        index+= Character.BYTES;
+        return bf.getChar(prevIndex);
+    }
+
+    public void read(byte[] bytes) {
+        prevIndex = index;
+        bf.position(prevIndex);
+        index=bytes.length;
+        bf.get(bytes, 0, bytes.length);
+    }
+
+    public float readFloat() {
+        prevIndex = index;
+        index+=Float.BYTES;
+        return bf.getFloat(prevIndex);
+    }
+
+    public double readDouble() {
+        prevIndex = index;
+        index+=Double.BYTES;
+        return bf.getDouble(prevIndex);
+    }
+}
 
 class CodeFragment {
     final byte[] code;
@@ -69,18 +139,6 @@ class Atom implements Value {
 
     public Atom(int tag) {
         this.tag = tag;
-    }
-}
-
-class DoubleValue implements Value {
-    private final double value;
-
-    public DoubleValue(double value) {
-        this.value = value;
-    }
-
-    public double getValue() {
-        return value;
     }
 }
 
@@ -177,8 +235,8 @@ public class Intern {
         this.ooIdGenerator = ooIdGenerator;
     }
 
-    public Value inputValue(InputStream is) throws IOException {
-        DataInputStream dis = new DataInputStream(is);
+    public Value inputValue(ByteBuffer bf) throws IOException {
+        DataInStream dis = new DataInStream(bf);
 
         int magic = dis.readInt();
         /*
@@ -220,7 +278,7 @@ public class Intern {
     }
 
 
-    Value internRec(List<Value> internObjectTable, DataInputStream dis) throws IOException {
+    Value internRec(List<Value> internObjectTable, DataInStream dis) throws IOException {
         int code;
         try {
             code = dis.readUnsignedByte();
@@ -269,7 +327,7 @@ public class Intern {
                     case CODE_BLOCK32: {
                         int header = dis.readInt();
                         int tag = header & 0xFF;
-                        int size = header >> 10;
+                        int size = header >>> 10;
                         return readBlock(internObjectTable, dis, tag, size);
                     }
                     case CODE_BLOCK64: {
@@ -349,9 +407,7 @@ public class Intern {
                                expectedSize = dis.readLong();
                            }
                         }
-                        byte[] bytes = new byte[(int)expectedSize];
-                        dis.read(bytes);
-                        return new CustomOperationsValue(ops, ops.deserialize.apply(bytes));
+                        return new CustomOperationsValue(ops, ops.deserialize.apply(dis));
                     default:
                         throw new RuntimeException("input_value: ill-formed message");
                 }
@@ -361,16 +417,16 @@ public class Intern {
 
     }
 
-    String readCString(InputStream is) throws IOException {
+    String readCString(DataInStream is) throws IOException {
         int ch;
         StringBuilder sb = new StringBuilder();
-        while((ch = is.read()) != 0) {
+        while((ch = is.readUnsignedByte()) != 0) {
             sb.append((char)ch);
         }
         return sb.toString();
     }
 
-    private Value readFloatArray(List<Value> internObjectTable, DataInputStream dis, int len) throws IOException {
+    private Value readFloatArray(List<Value> internObjectTable, DataInStream dis, int len) throws IOException {
         double[] arr = new double[len];
         for(int i = 0; i < len; i++) {
             arr[i] = dis.readFloat();
@@ -380,7 +436,7 @@ public class Intern {
         return v;
     }
 
-    private Value readDoubleArray(List<Value> internObjectTable, DataInputStream dis, int len) throws IOException {
+    private Value readDoubleArray(List<Value> internObjectTable, DataInStream dis, int len) throws IOException {
         double[] arr = new double[len];
         for(int i = 0; i < len; i++) {
             arr[i] = dis.readDouble();
@@ -390,7 +446,7 @@ public class Intern {
         return v;
     }
 
-    private Value readString(List<Value> internObjectTable, DataInputStream dis, int len) throws IOException {
+    private Value readString(List<Value> internObjectTable, DataInStream dis, int len) throws IOException {
         byte[] bytes = new byte[len];
         dis.read(bytes);
         Value v = new StringValue(bytes);
@@ -398,7 +454,7 @@ public class Intern {
         return v;
     }
 
-    private Value readBlock(List<Value> internObjectTable, DataInputStream dis, int tag, int size) throws IOException {
+    private Value readBlock(List<Value> internObjectTable, DataInStream dis, int tag, int size) throws IOException {
         if (size == 0) {
             return new Atom(tag);
         } else {
