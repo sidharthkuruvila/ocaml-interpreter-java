@@ -3,6 +3,7 @@ package interp;
 import interp.customoperations.CustomOperationsList;
 import interp.io.ChannelRegistry;
 import interp.primitives.*;
+import interp.value.DoubleValue;
 import interp.value.StringValue;
 
 import java.io.IOException;
@@ -13,7 +14,12 @@ public class ExecutableFileInterpreter {
     private final ExecutableBuilder exb;
     private final PrimitiveRegistry primitiveRegistry;
 
+
     public ExecutableFileInterpreter() throws IOException {
+        this(new ChannelRegistry());
+    }
+
+    public ExecutableFileInterpreter(ChannelRegistry channelRegistry) throws IOException {
         OOIdGenerator ooIdGenerator = new OOIdGenerator();
         CustomOperationsList customOperationsList = new CustomOperationsList();
         CodeFragmentTable codeFragmentTable = new CodeFragmentTable();
@@ -21,10 +27,7 @@ public class ExecutableFileInterpreter {
         exb = new ExecutableBuilder(codeFragmentTable, intern);
         primitiveRegistry = new PrimitiveRegistry();
 
-
         NamedValues namedValues = new NamedValues();
-
-        ChannelRegistry channelRegistry = new ChannelRegistry();
 
         primitiveRegistry.addPrimitive(new RegisterNamedValuePrimitive(namedValues));
         primitiveRegistry.addPrimitive(new FreshOOIdPrimitive(ooIdGenerator));
@@ -50,12 +53,16 @@ public class ExecutableFileInterpreter {
         primitiveRegistry.addFunc1("caml_int_of_string", LongValue::parseString);
         primitiveRegistry.addFunc1("caml_int64_of_int", LongValue::ofInt);
         primitiveRegistry.addFunc2("caml_nativeint_shift_left", LongValue::lsl2);
+        primitiveRegistry.addFunc2("caml_format_int", LongValue::format);
+        primitiveRegistry.addFunc2("caml_add_float", DoubleValue::add);
+        primitiveRegistry.addFunc2("caml_format_float", DoubleValue::format);
+        primitiveRegistry.addFunc2("caml_string_get", StringValue::getByteValue);
 
 
     }
 
     public void execute(Path executable) throws IOException {
-        Path path = Path.of("/Users/sidharthkuruvila/CLionProjects/ocaml/ocamlc");
+        Path path = executable; //Path.of("/Users/sidharthkuruvila/CLionProjects/ocaml/ocamlc");
         FileChannel fc = FileChannel.open(path);
         Executable e = exb.fromExe(fc);
         Primitives primitives = primitiveRegistry.getPrimitives(e.getPrims());

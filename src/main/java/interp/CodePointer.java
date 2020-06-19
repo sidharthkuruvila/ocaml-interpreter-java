@@ -12,7 +12,7 @@ public class CodePointer implements Value {
     }
 
     public CodePointer inc() {
-        assert index + 1 < code.code.length;
+        assert index < code.code.length;
         return new CodePointer(code, index + 1);
     }
 

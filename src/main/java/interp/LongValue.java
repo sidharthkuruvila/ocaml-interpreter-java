@@ -159,6 +159,13 @@ public class LongValue implements Value {
         return new LongValue(parsedValue);
     }
 
+    public static StringValue format(Value formatStringValue, Value nValue) {
+        String formatString = ((StringValue)formatStringValue).getString();
+        long n = ((LongValue)nValue).getValue();
+        String formatted = String.format(formatString, n);
+        return StringValue.ofString(formatted);
+    }
+
     public static LongValue ofInt(Value value) {
         return (LongValue)value;
     }

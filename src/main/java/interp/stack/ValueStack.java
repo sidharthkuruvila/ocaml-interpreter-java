@@ -43,7 +43,7 @@ public class ValueStack {
     public void reset(StackPointer externSp) {
         int oldLen = stack.size();
         int newLen = externSp.getSize();
-        assert newLen < oldLen;
+        assert newLen <= oldLen;
         popNIgnore(oldLen - newLen);
         assert stack.size() == newLen;
     }

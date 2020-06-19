@@ -11,7 +11,7 @@ public class StringValue implements Value {
         this.bytes = bytes;
     }
 
-    public static Value ofString(String java) {
+    public static StringValue ofString(String java) {
         return new StringValue(java.getBytes());
     }
 
@@ -50,5 +50,11 @@ public class StringValue implements Value {
     private static Value withLength(int size) {
         byte[] bytes = new byte[0];
         return new StringValue(bytes);
+    }
+
+    public static Value getByteValue(Value value, Value value1) {
+        byte[] bytes = ((StringValue)value).getBytes();
+        int index = ((LongValue)value1).getIntValue();
+        return new LongValue(bytes[index]);
     }
 }
