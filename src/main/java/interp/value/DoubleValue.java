@@ -23,4 +23,8 @@ public class DoubleValue implements Value {
         String formatted = String.format(formatString, n);
         return StringValue.ofString(formatted);
     }
+
+    public static Value mul(Value value, Value value1) {
+        return new DoubleValue(((DoubleValue)value).getValue() * ((DoubleValue)value1).getValue());
+    }
 }

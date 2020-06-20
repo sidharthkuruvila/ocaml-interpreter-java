@@ -3,6 +3,7 @@ package interp;
 import interp.customoperations.CustomOperationsList;
 import interp.io.ChannelRegistry;
 import interp.primitives.*;
+import interp.value.BaseArrayValue;
 import interp.value.DoubleValue;
 import interp.value.StringValue;
 
@@ -57,6 +58,12 @@ public class ExecutableFileInterpreter {
         primitiveRegistry.addFunc2("caml_add_float", DoubleValue::add);
         primitiveRegistry.addFunc2("caml_format_float", DoubleValue::format);
         primitiveRegistry.addFunc2("caml_string_get", StringValue::getByteValue);
+        primitiveRegistry.addFunc1("caml_obj_dup", BaseArrayValue::duplicateArray);
+        primitiveRegistry.addFunc2("caml_array_unsafe_get", BaseArrayValue::unsafeGet);
+        primitiveRegistry.addFunc3("caml_array_unsafe_set", BaseArrayValue::unsafeSet);
+        primitiveRegistry.addFunc2("caml_mul_float", DoubleValue::mul);
+        primitiveRegistry.addFunc2("caml_make_vect", BaseArrayValue::makeVect);
+
 
 
     }

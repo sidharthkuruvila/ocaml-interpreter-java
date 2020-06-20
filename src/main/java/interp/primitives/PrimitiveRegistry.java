@@ -1,5 +1,6 @@
 package interp.primitives;
 
+import interp.functions.Func3;
 import interp.value.Value;
 
 import java.util.HashMap;
@@ -32,5 +33,8 @@ public class PrimitiveRegistry {
     }
     public void addFunc2(String name, BiFunction<Value, Value, Value> fn){
         primitives.put(name, new Func2Primitive(name, fn));
+    }
+    public void addFunc3(String name, Func3<Value, Value, Value, Value> fn){
+        primitives.put(name, new Func3Primitive(name, fn));
     }
 }

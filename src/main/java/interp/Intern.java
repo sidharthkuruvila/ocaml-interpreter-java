@@ -145,26 +145,6 @@ class Atom implements Value {
     }
 }
 
-class DoubleArray implements Value {
-    private final double[] values;
-
-    public DoubleArray(double[] values){
-        this.values = values;
-    }
-
-    public double getField(int i) {
-        return values[i];
-    }
-
-    public void setField(int i, double value) {
-        values[i] = value;
-    }
-
-    public int getSize() {
-        return values.length;
-    }
-}
-
 class Header {
     private boolean isBig;
     private long dataLength;

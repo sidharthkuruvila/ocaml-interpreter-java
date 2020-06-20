@@ -1,20 +1,19 @@
 package interp.value;
 
 import java.util.Arrays;
-import java.util.List;
 
-public class ObjectValue implements Value {
+public class ObjectValue implements Value, BaseArrayValue<ObjectValue> {
     public static final int Pair_tag = 0;
 
 
     private final int prefix;
     private final int tag;
-    private final List<Value> fields;
+    private final Value[] fields;
 
     public ObjectValue(int tag, int size) {
         prefix = 0;
         this.tag = tag;
-        fields = Arrays.asList(new Value[size]);
+        fields = new Value[size];
     }
 
     public ObjectValue(ObjectValue objectValue, int prefix) {
@@ -23,19 +22,29 @@ public class ObjectValue implements Value {
         this.tag = objectValue.tag;
     }
 
+    private ObjectValue(int tag, Value[] fields) {
+        this.prefix = 0;
+        this.tag = tag;
+        this.fields = fields;
+    }
+
+    public static Value fromValueArray(int tag, Value[] arr) {
+        return new ObjectValue(tag, arr);
+    }
+
     public void setField(int field, Value value) {
         if(field == 172) {
             System.out.println("what happenin!");
         }
-        fields.set(field, value);
+        fields[field] = value;
     }
 
     public Value getField(int field) {
-        return fields.get(prefix + field);
+        return fields[prefix + field];
     }
 
     public int getSize() {
-        return fields.size() - prefix;
+        return fields.length - prefix;
     }
 
     public int getTag() {
@@ -43,10 +52,19 @@ public class ObjectValue implements Value {
     }
 
     public String toString() {
-        return String.format("Block{%s}", fields);
+        return String.format("Block{%s}", Arrays.asList(fields));
     }
 
     public ObjectValue atFieldId(int fieldId) {
         return new ObjectValue(this, fieldId);
+    }
+
+    @Override
+    public ObjectValue duplicate() {
+        ObjectValue o = new ObjectValue(this.tag, this.getSize());
+        for(int i = 0; i < fields.length; i++) {
+            o.setField(i, fields[i]);
+        }
+        return o;
     }
 }

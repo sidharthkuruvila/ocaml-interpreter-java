@@ -4,10 +4,7 @@ import interp.exceptions.DivideByZeroError;
 import interp.primitives.Primitives;
 import interp.stack.StackPointer;
 import interp.stack.ValueStack;
-import interp.value.DoubleValue;
-import interp.value.ObjectValue;
-import interp.value.StringValue;
-import interp.value.Value;
+import interp.value.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -595,17 +592,18 @@ public class Interpreter {
                     int size = pc.get();
                     pc = pc.inc();
                     double[] arr = new double[size];
-                    for (int i = 0; i < size; i++) {
-                        arr[i] = ((DoubleValue) stack.get(i)).getValue();
+                    arr[0] = ((DoubleValue) accu).getValue();
+                    for (int i = 1; i < size; i++) {
+                        arr[i] = ((DoubleValue) stack.pop()).getValue();
                     }
-                    stack.popNIgnore(size);
                     accu = new DoubleArray(arr);
+                    continue;
                 }
 
                 /* Access to components of blocks */
 
                 case GETFIELD0:
-                    accu = ((ObjectValue) accu).getField(0);
+                    accu = ((BaseArrayValue<?>) accu).getField(0);
                     continue;
                 case GETFIELD1:
                     accu = ((ObjectValue) accu).getField(1);
@@ -622,7 +620,7 @@ public class Interpreter {
                     continue;
 
                 case GETFLOATFIELD: {
-                    double d = ((DoubleArray) accu).getField(pc.get());
+                    double d = ((DoubleArray) accu).getDoubleField(pc.get());
                     pc = pc.inc();
                     accu = new DoubleValue(d);
                     continue;
@@ -651,7 +649,7 @@ public class Interpreter {
                     pc = pc.inc();
                     continue;
                 case SETFLOATFIELD:
-                    ((DoubleArray) accu).setField(pc.get(), ((DoubleValue) stack.get(0)).getValue());
+                    ((DoubleArray) accu).setDoubleField(pc.get(), ((DoubleValue) stack.get(0)).getValue());
                     pc = pc.inc();
                     stack.popNIgnore(1);
                     continue;
@@ -668,7 +666,7 @@ public class Interpreter {
                     } else {
                         size = ((DoubleArray) accu).getSize();
                     }
-                    accu = new DoubleValue(size);
+                    accu = new LongValue(size);
                     continue;
                 }
                 case GETVECTITEM:
