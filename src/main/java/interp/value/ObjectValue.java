@@ -67,4 +67,15 @@ public class ObjectValue implements Value, BaseArrayValue<ObjectValue> {
         }
         return o;
     }
+
+    @Override
+    public BaseArrayValue<?> append(BaseArrayValue<?> value1) {
+        assert this.tag == ((ObjectValue)value1).tag;
+        Value[] a1 = this.fields;
+        Value[] a2 = ((ObjectValue)value1).fields;
+        Value[] arr = new Value[a1.length + a2.length];
+        System.arraycopy(a1, 0, arr, 0, a1.length);
+        System.arraycopy(a2, 0, arr, a1.length, a2.length);
+        return new ObjectValue(this.tag, arr);
+    }
 }

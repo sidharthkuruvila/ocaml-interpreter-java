@@ -4,6 +4,8 @@ import interp.LongValue;
 import interp.Sys;
 import interp.exceptions.CamlInvalidArgument;
 
+import static interp.Interpreter.valUnit;
+
 public class StringValue implements Value {
     private final byte[] bytes;
 
@@ -39,7 +41,7 @@ public class StringValue implements Value {
         return bytes;
     }
 
-    public static Value createBytes(Value value) {
+    public static StringValue createBytes(Value value) {
         int size = ((LongValue) value).getIntValue();
         if(size > Sys.getMaxWoSize() - 1) {
             throw new CamlInvalidArgument("Bytes.create");
@@ -47,8 +49,8 @@ public class StringValue implements Value {
         return withLength(size);
     }
 
-    private static Value withLength(int size) {
-        byte[] bytes = new byte[0];
+    private static StringValue withLength(int size) {
+        byte[] bytes = new byte[size];
         return new StringValue(bytes);
     }
 
@@ -56,5 +58,20 @@ public class StringValue implements Value {
         byte[] bytes = ((StringValue)value).getBytes();
         int index = ((LongValue)value1).getIntValue();
         return new LongValue(bytes[index]);
+    }
+
+    public static Value blit(StringValue src, LongValue srcOffset, StringValue dest, LongValue destOffset, LongValue length) {
+        System.arraycopy(
+                unwrap(src), LongValue.unwrapInt(srcOffset),
+                unwrap(dest), LongValue.unwrapInt(destOffset),
+                LongValue.unwrapInt(length));
+        return valUnit;
+    }
+
+    public static byte[] unwrap(StringValue value) {
+        return value.bytes;
+    }
+    public static StringValue wrap(byte[] bytes) {
+        return new StringValue(bytes);
     }
 }

@@ -15,4 +15,8 @@ public interface Value {
             return valFalse;
         }
     }
+
+    static Value identity(Value value) {
+        return value;
+    }
 }

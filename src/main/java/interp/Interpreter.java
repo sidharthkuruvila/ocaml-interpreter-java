@@ -139,7 +139,7 @@ public class Interpreter {
         while (true) {
             Instructions currInstr = instructions[pc.get()];
             pc = pc.inc();
-            System.out.println(currInstr);
+//            System.out.println(currInstr);
             instructionTrace.add(currInstr);
             switch (currInstr) {
                 case ACC0:

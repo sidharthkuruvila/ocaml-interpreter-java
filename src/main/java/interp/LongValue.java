@@ -17,6 +17,14 @@ public class LongValue implements Value {
         this.value = value;
     }
 
+    public static long unwrap(Value length) {
+        return ((LongValue)length).getValue();
+    }
+
+    public static int unwrapInt(Value length) {
+        return ((LongValue)length).getIntValue();
+    }
+
     long getValue() {
         return value;
     }

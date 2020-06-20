@@ -1,7 +1,5 @@
 package interp.value;
 
-import interp.LongValue;
-
 public class DoubleValue implements Value {
     private final double value;
 
@@ -24,7 +22,23 @@ public class DoubleValue implements Value {
         return StringValue.ofString(formatted);
     }
 
-    public static Value mul(Value value, Value value1) {
-        return new DoubleValue(((DoubleValue)value).getValue() * ((DoubleValue)value1).getValue());
+    public static Value mul(Value value1, Value value2) {
+        return wrap(unwrap(value1) * unwrap(value2));
     }
+
+    public static DoubleValue abs(Value value) {
+        return wrap(Math.abs(unwrap(value)));
+    }
+
+    private static DoubleValue wrap(double d) {
+        return new DoubleValue(d);
+    }
+    private static double unwrap(Value value){
+        return ((DoubleValue)value).getValue();
+    }
+
+    public static DoubleValue acos(Value value) {
+        return wrap(Math.acos(unwrap(value)));
+    }
+
 }

@@ -40,4 +40,10 @@ public interface BaseArrayValue<T extends BaseArrayValue> extends Value{
         return valUnit;
 
     }
+
+    static BaseArrayValue<?> append(Value value, Value value1) {
+        return ((BaseArrayValue<?>)value).append((BaseArrayValue<?>)value1);
+    }
+
+    BaseArrayValue<?> append(BaseArrayValue<?> value1);
 }

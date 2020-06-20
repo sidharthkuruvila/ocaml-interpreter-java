@@ -37,4 +37,11 @@ public class PrimitiveRegistry {
     public void addFunc3(String name, Func3<Value, Value, Value, Value> fn){
         primitives.put(name, new Func3Primitive(name, fn));
     }
+    public void unimplemented(String name) {
+        primitives.put(name, new UnimplementedPrimitive(name));
+    }
+
+    public void addFuncN(String name, Function<Value[], Value> fn) {
+        primitives.put(name, new FuncNPrimitive(name, fn));
+    }
 }

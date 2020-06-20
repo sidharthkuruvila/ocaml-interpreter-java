@@ -1,3 +1,11 @@
+
+let make_string_from_array ~f ~sep array =
+  let e = ref (f (Array.get array 0)) in
+  for i = 1 to (Array.length array) - 1 do
+    e := !e ^ sep ^ (f (Array.get array i))
+  done;
+  !e
+
 let test1 _ = print_endline "Hello World"
 let test2 _ =
   let a = 1 in
@@ -23,11 +31,19 @@ let test5 _ =
   let n = Array.fold_left (fun a b -> a +. b) 0. asq in
   print_endline (string_of_float n)
 
+let test6 _ =
+  let a1 = [|1.;2.;3.|] in
+  let a2 = [|4.;5.;6.|] in
+  let arr = Array.append a1 a2 in
+  let str = make_string_from_array ~f:string_of_float ~sep:", " arr in
+  print_endline str
+
 (*hello world*)
 let _ = begin
   test1 ();
   test2 ();
   test3 ();
   test4 ();
-  test5 ()
+  test5 ();
+  test6 ()
 end
