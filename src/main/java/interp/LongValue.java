@@ -11,30 +11,30 @@ import static interp.Interpreter.valFalse;
 import static interp.Interpreter.valTrue;
 
 public class LongValue implements Value {
-    private long value;
+    private final long value;
 
     public LongValue(long value) {
         this.value = value;
     }
 
-    public static long unwrap(Value length) {
-        return ((LongValue)length).getValue();
+    public static LongValue wrap(long value) {
+        return new LongValue(value);
     }
 
-    public static int unwrapInt(Value length) {
-        return ((LongValue)length).getIntValue();
+    public static long unwrap(LongValue longValue) {
+        return longValue.getValue();
+    }
+
+    public static int unwrapInt(LongValue longValue) {
+        return longValue.getIntValue();
     }
 
     long getValue() {
         return value;
     }
 
-    void setValue(long value) {
-        this.value = value;
-    }
-
     public boolean equals(Object b) {
-        if(b != null &&b instanceof  LongValue) {
+        if(b instanceof LongValue) {
             return ((LongValue)b).value == value;
         }
         return false;
@@ -135,8 +135,8 @@ public class LongValue implements Value {
         return (int)value;
     }
 
-    public static LongValue parseString(Value stringValue) {
-        String string = ((StringValue)stringValue).toString();
+    public static LongValue parseString(StringValue stringValue) {
+        String string = stringValue.toString();
         int i = 0;
         int sign = 1;
         if(string.charAt(i) == '-' ) {
@@ -167,18 +167,14 @@ public class LongValue implements Value {
         return new LongValue(parsedValue);
     }
 
-    public static StringValue format(Value formatStringValue, Value nValue) {
-        String formatString = ((StringValue)formatStringValue).getString();
-        long n = ((LongValue)nValue).getValue();
+    public static StringValue format(StringValue formatStringValue, LongValue nValue) {
+        String formatString = formatStringValue.getString();
+        long n = unwrap(nValue);
         String formatted = String.format(formatString, n);
         return StringValue.ofString(formatted);
     }
 
-    public static LongValue ofInt(Value value) {
-        return (LongValue)value;
-    }
-
-    public static Value lsl2(Value value, Value value1) {
-        return ((LongValue) value).lsl((LongValue)value1);
+    public static Value lsl2(LongValue value, LongValue value1) {
+        return value.lsl(value1);
     }
 }

@@ -4,18 +4,19 @@ import interp.value.Value;
 
 import java.util.function.BiFunction;
 
-public class Func2Primitive implements Primitive {
+public class Func2Primitive<T extends Value, U extends Value> implements Primitive {
     private final String name;
-    private final BiFunction<Value, Value, Value> fn;
+    private final BiFunction<T, U, Value> fn;
 
-    public Func2Primitive(String name, BiFunction<Value, Value, Value> fn) {
+    public Func2Primitive(String name, BiFunction<T, U, Value> fn) {
         this.name = name;
         this.fn = fn;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Value call(Value[] values) {
-        return fn.apply(values[0], values[1]);
+        return fn.apply((T)values[0], (U)values[1]);
     }
 
     @Override

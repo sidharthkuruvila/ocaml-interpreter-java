@@ -41,8 +41,8 @@ public class StringValue implements Value {
         return bytes;
     }
 
-    public static StringValue createBytes(Value value) {
-        int size = ((LongValue) value).getIntValue();
+    public static StringValue createBytes(LongValue value) {
+        int size = LongValue.unwrapInt(value);
         if(size > Sys.getMaxWoSize() - 1) {
             throw new CamlInvalidArgument("Bytes.create");
         }
@@ -54,10 +54,10 @@ public class StringValue implements Value {
         return new StringValue(bytes);
     }
 
-    public static Value getByteValue(Value value, Value value1) {
-        byte[] bytes = ((StringValue)value).getBytes();
-        int index = ((LongValue)value1).getIntValue();
-        return new LongValue(bytes[index]);
+    public static Value getByteValue(StringValue value, LongValue value1) {
+        byte[] bytes = unwrap(value);
+        int index = LongValue.unwrapInt(value1);
+        return LongValue.wrap(bytes[index]);
     }
 
     public static Value blit(StringValue src, LongValue srcOffset, StringValue dest, LongValue destOffset, LongValue length) {

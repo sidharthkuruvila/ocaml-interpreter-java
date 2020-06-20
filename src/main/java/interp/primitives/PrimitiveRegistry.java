@@ -28,11 +28,11 @@ public class PrimitiveRegistry {
     public void addFunc0(String name, Supplier<Value> fn){
         primitives.put(name, new Func0Primitive(name, fn));
     }
-    public void addFunc1(String name, Function<Value, Value> fn){
-        primitives.put(name, new Func1Primitive(name, fn));
+    public <T extends Value> void addFunc1(String name, Function<T, Value> fn){
+        primitives.put(name, new Func1Primitive<>(name, fn));
     }
-    public void addFunc2(String name, BiFunction<Value, Value, Value> fn){
-        primitives.put(name, new Func2Primitive(name, fn));
+    public <T extends Value, U extends Value> void addFunc2(String name, BiFunction<T, U, Value> fn){
+        primitives.put(name, new Func2Primitive<>(name, fn));
     }
     public void addFunc3(String name, Func3<Value, Value, Value, Value> fn){
         primitives.put(name, new Func3Primitive(name, fn));

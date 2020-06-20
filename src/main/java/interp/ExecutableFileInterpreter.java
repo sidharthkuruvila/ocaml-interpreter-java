@@ -50,7 +50,7 @@ public class ExecutableFileInterpreter {
         primitiveRegistry.addFunc0("caml_sys_const_max_wosize", Sys::constOsMaxWoSize);
         primitiveRegistry.addFunc1("caml_create_bytes", StringValue::createBytes);
         primitiveRegistry.addFunc1("caml_int_of_string", LongValue::parseString);
-        primitiveRegistry.addFunc1("caml_int64_of_int", LongValue::ofInt);
+        primitiveRegistry.addFunc1("caml_int64_of_int", Value::identity);
         primitiveRegistry.addFunc2("caml_nativeint_shift_left", LongValue::lsl2);
         primitiveRegistry.addFunc2("caml_format_int", LongValue::format);
 
@@ -487,7 +487,7 @@ public class ExecutableFileInterpreter {
 
     }
 
-    private static Value allocDummy(Value length) {
+    private static ObjectValue allocDummy(LongValue length) {
         return new ObjectValue(0, LongValue.unwrapInt(length));
     }
 

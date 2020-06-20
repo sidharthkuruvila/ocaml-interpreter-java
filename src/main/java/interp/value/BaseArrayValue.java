@@ -6,7 +6,7 @@ import java.util.Arrays;
 
 import static interp.Interpreter.valUnit;
 
-public interface BaseArrayValue<T extends BaseArrayValue> extends Value{
+public interface BaseArrayValue<T extends BaseArrayValue<T>> extends Value{
 
     void setField(int field, Value value);
 
