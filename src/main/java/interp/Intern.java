@@ -137,14 +137,6 @@ class CodeFragmentTable {
 
 ;
 
-class Atom implements Value {
-    private final int tag;
-
-    public Atom(int tag) {
-        this.tag = tag;
-    }
-}
-
 class Header {
     private boolean isBig;
     private long dataLength;

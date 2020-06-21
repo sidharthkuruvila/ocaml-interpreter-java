@@ -69,6 +69,11 @@ public class ObjectValue implements Value, BaseArrayValue<ObjectValue> {
     }
 
     @Override
+    public void blitTo(int offset, ObjectValue dest, int destOffset, int length) {
+        System.arraycopy(fields, offset, dest.fields, destOffset, length);
+    }
+
+    @Override
     public BaseArrayValue<?> append(BaseArrayValue<?> value1) {
         assert this.tag == ((ObjectValue)value1).tag;
         Value[] a1 = this.fields;

@@ -22,7 +22,12 @@ public class ExecutableInterpreterTest {
             ByteArrayOutputStream err = new ByteArrayOutputStream();
             ChannelRegistry channelRegistry = new ChannelRegistry(in, out, err);
             ExecutableFileInterpreter interpreter = new ExecutableFileInterpreter(channelRegistry);
-            interpreter.execute(exePath);
+            try {
+                interpreter.execute(exePath);
+            } catch (Throwable t) {
+                t.printStackTrace();
+            }
+
 
             System.out.println(new String(out.toByteArray()));
         }

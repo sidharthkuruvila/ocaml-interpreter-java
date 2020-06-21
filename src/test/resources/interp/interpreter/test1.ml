@@ -38,6 +38,15 @@ let test6 _ =
   let str = make_string_from_array ~f:string_of_float ~sep:", " arr in
   print_endline str
 
+let test7 _ =
+  let a1 = [|1.;2.;3.|] in
+  let a2 = [|4.;5.;6.|] in
+  let a3 = Array.make 3 7. in
+  let a4 = Array.make 3 8. in
+  let arr = Array.concat [a1; a2; a3; a4] in
+  let str = make_string_from_array ~f:string_of_float ~sep:", " arr in
+  print_endline str
+
 (*hello world*)
 let _ = begin
   test1 ();
@@ -45,5 +54,6 @@ let _ = begin
   test3 ();
   test4 ();
   test5 ();
-  test6 ()
+  test6 ();
+  test7 ()
 end

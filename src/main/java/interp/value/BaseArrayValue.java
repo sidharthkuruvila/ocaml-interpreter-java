@@ -2,7 +2,9 @@ package interp.value;
 
 import interp.LongValue;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import static interp.Interpreter.valUnit;
 
@@ -13,6 +15,8 @@ public interface BaseArrayValue<T extends BaseArrayValue<T>> extends Value{
     Value getField(int field);
 
     T duplicate();
+
+    void blitTo(int offset, T dest, int destOffset, int length);
 
     static BaseArrayValue<?> duplicateArray(Value src) {
         return ((BaseArrayValue<?>)src).duplicate();
@@ -46,4 +50,43 @@ public interface BaseArrayValue<T extends BaseArrayValue<T>> extends Value{
     }
 
     BaseArrayValue<?> append(BaseArrayValue<?> value1);
+
+    static Value arrayConcat(Value value) {
+        if(value == valUnit) {
+            return new Atom(0);
+        }
+
+        ObjectValue list = (ObjectValue)value;
+
+        if(list.getField(0) instanceof DoubleArray) {
+            int length = 0;
+            List<DoubleArray> arrs = new ArrayList<>();
+            for(Value next = value; !next.equals(valUnit); next = ((ObjectValue)next).getField(1)) {
+                length += ((DoubleArray)((ObjectValue)next).getField(0)).getSize();
+                arrs.add((DoubleArray)((ObjectValue)next).getField(0));
+            }
+            DoubleArray doubleArray = new DoubleArray(new double[length]);
+
+            for(int i = 0, n = 0; i < arrs.size(); n += arrs.get(i).getSize(), i++){
+                arrs.get(i).blitTo(0, doubleArray, n, arrs.get(i).getSize());
+            }
+            return doubleArray;
+
+        } else {
+            int length = 0;
+            List<ObjectValue> arrs = new ArrayList<>();
+            for(ObjectValue next = (ObjectValue)value; !next.equals(valUnit); next = (ObjectValue)next.getField(1)) {
+                length += ((ObjectValue)next.getField(0)).getSize();
+                arrs.add((ObjectValue)next.getField(0));
+            }
+            ObjectValue objectValue = new ObjectValue(0, length);
+
+            for(int i = 0, n = 0; i < arrs.size(); i++, n += arrs.get(i).getSize()){
+                arrs.get(i).blitTo(0, objectValue, n, arrs.get(i).getSize());
+            }
+            return objectValue;
+        }
+
+    }
+
 }

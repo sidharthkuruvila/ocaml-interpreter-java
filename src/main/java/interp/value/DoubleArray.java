@@ -9,6 +9,10 @@ public class DoubleArray implements BaseArrayValue<DoubleArray>, Value {
         this.values = values;
     }
 
+    public static double[] unwrap(DoubleArray doubleArray) {
+        return doubleArray.values;
+    }
+
     public double getDoubleField(int i) {
         return values[i];
     }
@@ -37,12 +41,17 @@ public class DoubleArray implements BaseArrayValue<DoubleArray>, Value {
     }
 
     @Override
+    public void blitTo(int offset, DoubleArray dest, int destOffset, int length) {
+        System.arraycopy(values, offset, dest.values, destOffset, length);
+    }
+
+    @Override
     public BaseArrayValue<?> append(BaseArrayValue<?> value1) {
-        double[] a1 = values;
-        double[] a2 = ((DoubleArray)value1).values;
-        double[] arr = new double[a1.length + a2.length];
-        System.arraycopy(a1, 0, arr, 0, a1.length);
-        System.arraycopy(a2, 0, arr, a1.length, a2.length);
+        DoubleArray other = (DoubleArray)value1;
+        double[] arr = new double[getSize() + other.getSize()];
+        DoubleArray out = new DoubleArray(arr);
+        this.blitTo(0, out, 0, getSize());
+        other.blitTo(0, out, getSize(), other.getSize());
         return new DoubleArray(arr);
     }
 }
