@@ -250,9 +250,9 @@ public class Interpreter {
                     continue;
                     /* Function application */
                 case PUSH_RETADDR:
-                    stack.push(pc.incN(pc.get()));
                     stack.push(new LongValue(extraArgs));
                     stack.push(env);
+                    stack.push(pc.incN(pc.get()));
                     pc = pc.inc();
                     continue;
                 case APPLY: {
@@ -369,7 +369,7 @@ public class Interpreter {
                         pc = (CodePointer) accu;
                         env = accu;
                     } else {
-                        pc = (CodePointer) (stack.get(0));
+                        pc = (CodePointer) stack.get(0);
                         env = stack.get(1);
                         extraArgs = (int) ((LongValue) stack.get(2)).getValue();
                         stack.popNIgnore(3);

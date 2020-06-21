@@ -10,6 +10,11 @@ import static interp.Interpreter.valUnit;
 
 public interface BaseArrayValue<T extends BaseArrayValue<T>> extends Value{
 
+    static Value blit(BaseArrayValue src, LongValue offset, BaseArrayValue dest, LongValue destOffset, LongValue length) {
+        src.blitTo(LongValue.unwrapInt(offset), dest, LongValue.unwrapInt(destOffset), LongValue.unwrapInt(length));
+        return valUnit;
+    }
+
     void setField(int field, Value value);
 
     Value getField(int field);

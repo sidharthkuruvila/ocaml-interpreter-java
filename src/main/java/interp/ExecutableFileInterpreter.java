@@ -75,8 +75,16 @@ public class ExecutableFileInterpreter {
         primitiveRegistry.addFunc1("caml_alloc_dummy_function", ExecutableFileInterpreter::allocDummy);
         primitiveRegistry.unimplemented("caml_alloc_dummy_infix");
         primitiveRegistry.addFunc2("caml_array_append", BaseArrayValue::append);
-        primitiveRegistry.unimplemented("caml_array_blit");
+        primitiveRegistry.addFuncN("caml_array_blit", (Value[] values) -> BaseArrayValue.blit(
+                (BaseArrayValue)values[0],
+                (LongValue)values[1],
+                (BaseArrayValue)values[2],
+                (LongValue)values[3],
+                (LongValue)values[4]
+        ));
         primitiveRegistry.addFunc1("caml_array_concat", BaseArrayValue::arrayConcat);
+
+        primitiveRegistry.addFunc1("caml_make_float_vect", DoubleArray::makeVect);
 
         primitiveRegistry.addFuncN("caml_blit_string",
                 (Value[] values) -> StringValue.blit(

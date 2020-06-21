@@ -1,5 +1,7 @@
 package interp.value;
 
+import interp.LongValue;
+
 import java.util.Arrays;
 
 public class DoubleArray implements BaseArrayValue<DoubleArray>, Value {
@@ -54,4 +56,10 @@ public class DoubleArray implements BaseArrayValue<DoubleArray>, Value {
         other.blitTo(0, out, getSize(), other.getSize());
         return new DoubleArray(arr);
     }
+
+    public static Value makeVect(Value size) {
+        return new DoubleArray(new double[LongValue.unwrapInt((LongValue) size)]);
+    }
+
+
 }
