@@ -34,8 +34,8 @@ public class PrimitiveRegistry {
     public <T extends Value, U extends Value> void addFunc2(String name, BiFunction<T, U, Value> fn){
         primitives.put(name, new Func2Primitive<>(name, fn));
     }
-    public void addFunc3(String name, Func3<Value, Value, Value, Value> fn){
-        primitives.put(name, new Func3Primitive(name, fn));
+    public <T extends Value, U extends Value, V extends Value>void addFunc3(String name, Func3<T, U, V, Value> fn){
+        primitives.put(name, new Func3Primitive<>(name, fn));
     }
     public void unimplemented(String name) {
         primitives.put(name, new UnimplementedPrimitive(name));

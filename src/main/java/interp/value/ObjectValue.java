@@ -83,4 +83,9 @@ public class ObjectValue implements Value, BaseArrayValue<ObjectValue> {
         System.arraycopy(a2, 0, arr, a1.length, a2.length);
         return new ObjectValue(this.tag, arr);
     }
+
+    @Override
+    public Value subArray(int offset, int length) {
+        return new ObjectValue(tag, Arrays.copyOfRange(fields, offset, offset + length));
+    }
 }

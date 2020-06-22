@@ -57,6 +57,11 @@ public class DoubleArray implements BaseArrayValue<DoubleArray>, Value {
         return new DoubleArray(arr);
     }
 
+    @Override
+    public Value subArray(int offset, int length) {
+        return new DoubleArray(Arrays.copyOfRange(values, offset, offset + length));
+    }
+
     public static Value makeVect(Value size) {
         return new DoubleArray(new double[LongValue.unwrapInt((LongValue) size)]);
     }

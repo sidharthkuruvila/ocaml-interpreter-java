@@ -53,14 +53,36 @@ let test7 _ = begin
   let str = make_string_from_array ~f:string_of_float ~sep:", " arr2 in
   print_endline str;
   let str = make_string_from_array ~f:string_of_float ~sep:", " arr3 in
+  print_endline str;
+  let arr5 = Array.sub arr 2 4 in
+  let str = make_string_from_array ~f:string_of_float ~sep:", " arr5 in
   print_endline str
 end
 let test8 _ = begin
-  let a = [|1.;2.;3.;4.;5.;6.;7.;8.|] in
-  let b = [|0.;0.;0.;0.;0.;0.;0.;0.|] in
-  Array.blit a 1 b 2 4;
-  print_endline "hello"
+  let a1 = [| 4 |] in
+  let n1 = Array.get a1 0 in
+  Array.set a1 0 (n1 + 1);
+  print_endline (make_string_from_array ~f:string_of_int ~sep:", " a1);
+  let a2 = [| 4. |] in
+  let n2 = Array.get a2 0 in
+  Array.set a2 0 (n2 +. 1.);
+  print_endline (make_string_from_array ~f:string_of_float ~sep:", " a2)
 end
+
+let test9 _ =
+  let a = 0.5 in
+  let b = Float.asin 1. in
+  let c = Float.sin 1. in
+  let d = Float.cos 1. in
+  let e = Float.acos 1. in
+  let f = Float.tan 1. in
+  let g = Float.atan f in
+  let h = Float.atan2 f f in
+  let i = Float.abs (Float.neg (1.)) in
+  let s = Array.fold_left (fun a b -> a +. b) 0. [| a;b;c;d;e;f;g;h;i|] in
+  print_endline (string_of_float s);
+  print_endline (string_of_float (Float.ceil s));
+  print_endline (string_of_float (Float.floor s))
 
 (*hello world*)
 let _ = begin
@@ -71,5 +93,6 @@ let _ = begin
   test5 ();
   test6 ();
   test7 ();
-  test8 ()
+  test8 ();
+  test9 ()
 end

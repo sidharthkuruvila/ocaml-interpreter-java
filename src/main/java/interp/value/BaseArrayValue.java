@@ -94,4 +94,10 @@ public interface BaseArrayValue<T extends BaseArrayValue<T>> extends Value{
 
     }
 
+    Value subArray(int offset, int length);
+
+    static Value sub(Value arrayValue, Value offset, Value length) {
+        return ((BaseArrayValue)arrayValue).subArray((LongValue.unwrapInt((LongValue)offset)), LongValue.unwrapInt((LongValue)length));
+    }
+
 }
