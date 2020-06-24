@@ -84,8 +84,30 @@ let test9 _ =
   print_endline (string_of_float (Float.ceil s));
   print_endline (string_of_float (Float.floor s))
 
+
+let test_nativeint _ =
+  let open Nativeint in
+  let a = of_float 3.5 in
+  let b = of_int 4 in
+  let c = of_string "7" in
+  (*let d = of_string_opt "abc" in*)
+  let e = one in
+  let f = abs minus_one in
+  let g = add b c in
+  let h = compare b c in
+  let i = div c a in
+  print_endline "Test nativeint";
+  print_endline  (to_string i)
+
+let test_ref _ =
+  let x = ref 1 in
+  x := 1 + !x;
+  print_endline (string_of_int !x)
+
 (*hello world*)
 let _ = begin
+  test_ref ();
+  (*test_nativeint ();*)
   test1 ();
   test2 ();
   test3 ();
@@ -94,5 +116,6 @@ let _ = begin
   test6 ();
   test7 ();
   test8 ();
-  test9 ()
+  test9 ();
+  ()
 end

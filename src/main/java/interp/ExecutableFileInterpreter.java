@@ -1,6 +1,7 @@
 package interp;
 
 import interp.customoperations.CustomOperationsList;
+import interp.ints.NativeIntCustomOperations;
 import interp.io.ChannelRegistry;
 import interp.primitives.*;
 import interp.value.*;
@@ -331,15 +332,16 @@ public class ExecutableFileInterpreter {
         primitiveRegistry.unimplemented("caml_nativeint_mod");
         primitiveRegistry.unimplemented("caml_nativeint_mul");
         primitiveRegistry.unimplemented("caml_nativeint_neg");
-        primitiveRegistry.unimplemented("caml_nativeint_of_float");
-        primitiveRegistry.unimplemented("caml_nativeint_of_int");
+        primitiveRegistry.addFunc1("caml_nativeint_of_float", NativeIntCustomOperations::ofFloat);
+        primitiveRegistry.addFunc1("caml_nativeint_of_int", NativeIntCustomOperations::ofInt);
         primitiveRegistry.unimplemented("caml_nativeint_of_int32");
-        primitiveRegistry.unimplemented("caml_nativeint_of_string");
+        primitiveRegistry.addFunc1("caml_nativeint_of_string", NativeIntCustomOperations::ofString);
         primitiveRegistry.unimplemented("caml_nativeint_or");
-        primitiveRegistry.addFunc2("caml_nativeint_shift_left", LongValue::lsl2);
+
+        primitiveRegistry.addFunc2("caml_nativeint_shift_left", NativeIntCustomOperations::lsl);
         primitiveRegistry.unimplemented("caml_nativeint_shift_right");
         primitiveRegistry.unimplemented("caml_nativeint_shift_right_unsigned");
-        primitiveRegistry.unimplemented("caml_nativeint_sub");
+        primitiveRegistry.addFunc2("caml_nativeint_sub", NativeIntCustomOperations::sub);
         primitiveRegistry.unimplemented("caml_nativeint_to_float");
         primitiveRegistry.unimplemented("caml_nativeint_to_int");
         primitiveRegistry.unimplemented("caml_nativeint_to_int32");
@@ -453,7 +455,7 @@ public class ExecutableFileInterpreter {
     }
 
     private static ObjectValue allocDummy(LongValue length) {
-        return new ObjectValue(0, LongValue.unwrapInt(length));
+        return new ObjectValue(ValueTag.PAIR_TAG, LongValue.unwrapInt(length));
     }
 
     public void execute(Path executable) throws IOException {

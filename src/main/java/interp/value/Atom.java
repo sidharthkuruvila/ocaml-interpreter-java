@@ -1,9 +1,11 @@
 package interp.value;
 
-public class Atom implements Value {
-    private final int tag;
+import interp.ValueTag;
 
-    public Atom(int tag) {
+public class Atom implements Value {
+    private final ValueTag tag;
+
+    public Atom(ValueTag tag) {
         this.tag = tag;
     }
 }

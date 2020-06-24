@@ -14,6 +14,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
+import static interp.ValueTag.Object_tag;
+
 
 class DataInStream extends DataInputStream {
     public DataInStream(ByteBuffer bf){
@@ -181,6 +183,7 @@ class InternStackEntry {
 }
 
 public class Intern {
+    static final int sizeOfValue = 8;
     int magic_number_small = 0x8495A6BE;
     int magic_number_big = 0x8495A6BF;
 
@@ -214,8 +217,7 @@ public class Intern {
     static final int CODE_CUSTOM_LEN = 0x18;
     static final int CODE_CUSTOM_FIXED = 0x19;
 
-    static final int Object_tag = 248;
-    static final int Closure_tag = 247;
+
 
 
     private final CodeFragmentTable codeFragmentTable;
@@ -276,7 +278,7 @@ public class Intern {
 
     Value internRec(List<Value> internObjectTable, DataInStream dis) throws IOException {
         Deque<InternStackEntry> internStack = new ArrayDeque<>();
-        ObjectValue bottom = new ObjectValue(0, 1);
+        ObjectValue bottom = new ObjectValue(ValueTag.PAIR_TAG, 1);
         int field = 0;
 
         while(true) {
@@ -293,7 +295,7 @@ public class Intern {
             code = dis.readUnsignedByte();
             if (code >= PREFIX_SMALL_INT) {
                 if (code >= PREFIX_SMALL_BLOCK) {
-                    int tag = code & 0xF;
+                    ValueTag tag = ValueTag.of(code & 0xF);
                     int size = (code >> 4) & 0x7;
                     if(size  == 0) {
                         next = new Atom(tag);
@@ -358,7 +360,7 @@ public class Intern {
                         }
                         case CODE_BLOCK32: {
                             int header = dis.readInt();
-                            int tag = header & 0xFF;
+                            ValueTag tag = ValueTag.of(header & 0xFF);
                             int size = header >>> 10;
                             ObjectValue block = new ObjectValue(tag, size);
                             bottom.setField(field, block);
@@ -438,7 +440,7 @@ public class Intern {
                         case CODE_CUSTOM:
                         case CODE_CUSTOM_LEN:
                         case CODE_CUSTOM_FIXED:
-                            System.out.println("CUSTOM_CODE");
+//                            System.out.println("CUSTOM_CODE");
                             String ident = readCString(dis);
                             CustomOperations ops = customOperationsList.findCustomOperations(ident);
 
@@ -457,8 +459,13 @@ public class Intern {
                                     expectedSize = dis.readLong();
                                 }
                             }
+
                             next = new CustomOperationsValue(ops, ops.deserialize.apply(dis));
                             internObjectTable.add(next);
+
+                            //TODO add finalizer logic
+
+
                             break;
                         default:
                             throw new RuntimeException("input_value: ill-formed message");
@@ -509,7 +516,7 @@ public class Intern {
         return v;
     }
 
-    private Value readBlock(List<Value> internObjectTable, DataInStream dis, int tag, int size) throws IOException {
+    private Value readBlock(List<Value> internObjectTable, DataInStream dis, ValueTag tag, int size) throws IOException {
         if (size == 0) {
             return new Atom(tag);
         } else {

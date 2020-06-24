@@ -1,6 +1,7 @@
 package interp.value;
 
 import interp.LongValue;
+import interp.ValueTag;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,7 +41,7 @@ public interface BaseArrayValue<T extends BaseArrayValue<T>> extends Value{
         } else {
             Value[] arr = new Value[len];
             Arrays.fill(arr, initValue);
-            return ObjectValue.fromValueArray(0, arr);
+            return ObjectValue.fromValueArray(ValueTag.PAIR_TAG, arr);
         }
     }
 
@@ -58,7 +59,7 @@ public interface BaseArrayValue<T extends BaseArrayValue<T>> extends Value{
 
     static Value arrayConcat(Value value) {
         if(value == valUnit) {
-            return new Atom(0);
+            return new Atom(ValueTag.PAIR_TAG);
         }
 
         ObjectValue list = (ObjectValue)value;
@@ -84,7 +85,7 @@ public interface BaseArrayValue<T extends BaseArrayValue<T>> extends Value{
                 length += ((ObjectValue)next.getField(0)).getSize();
                 arrs.add((ObjectValue)next.getField(0));
             }
-            ObjectValue objectValue = new ObjectValue(0, length);
+            ObjectValue objectValue = new ObjectValue(ValueTag.PAIR_TAG, length);
 
             for(int i = 0, n = 0; i < arrs.size(); i++, n += arrs.get(i).getSize()){
                 arrs.get(i).blitTo(0, objectValue, n, arrs.get(i).getSize());

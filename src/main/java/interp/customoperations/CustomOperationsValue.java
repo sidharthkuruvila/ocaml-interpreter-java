@@ -2,16 +2,22 @@ package interp.customoperations;
 
 import interp.value.Value;
 
-public class CustomOperationsValue implements Value {
-    private final CustomOperations customOperations;
-    private final Object data;
+public class CustomOperationsValue<V> implements Value {
+    private final CustomOperations<V> customOperations;
+    private final V data;
 
-    public CustomOperationsValue(CustomOperations customOperations, Object data) {
+    public CustomOperationsValue(CustomOperations<V> customOperations, V data) {
         this.customOperations = customOperations;
         this.data = data;
     }
 
-    public Object getData() {
+    public CustomOperations<V> ops() {
+        return customOperations;
+    }
+
+    public V getData() {
         return data;
     }
+
+
 }

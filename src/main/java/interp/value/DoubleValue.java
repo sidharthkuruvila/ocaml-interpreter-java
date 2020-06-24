@@ -37,7 +37,7 @@ public class DoubleValue implements Value {
     private static DoubleValue wrap(double d) {
         return new DoubleValue(d);
     }
-    private static double unwrap(DoubleValue value){
+    public static double unwrap(DoubleValue value){
         return value.getValue();
     }
 

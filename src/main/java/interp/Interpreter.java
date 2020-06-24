@@ -134,7 +134,7 @@ public class Interpreter {
 
         Instructions[] instructions = Instructions.values();
 
-        Value env = new Atom(0);
+        Value env = new Atom(ValueTag.PAIR_TAG);
 
         while (true) {
             Instructions currInstr = instructions[pc.get()];
@@ -395,7 +395,7 @@ public class Interpreter {
                         extraArgs -= required;
                     } else {
                         int numArgs = 1 + extraArgs;
-                        ObjectValue o = new ObjectValue(Intern.Closure_tag, numArgs + 3);
+                        ObjectValue o = new ObjectValue(ValueTag.Closure_tag, numArgs + 3);
                         accu = o;
                         o.setField(2, env);
                         for (int i = 0; i < numArgs; i++) {
@@ -420,7 +420,7 @@ public class Interpreter {
                         stack.push(accu);
                     }
 
-                    ObjectValue o = new ObjectValue(Intern.Closure_tag, 2 + nVars);
+                    ObjectValue o = new ObjectValue(ValueTag.Closure_tag, 2 + nVars);
                     accu = o;
                     for (int i = 0; i < nVars; i++) {
                         o.setField(i + 2, stack.get(i));
@@ -444,7 +444,7 @@ public class Interpreter {
                     if (nVars > 0) {
                         stack.push(accu);
                     }
-                    ObjectValue o = new ObjectValue(Intern.Closure_tag, blkSize);
+                    ObjectValue o = new ObjectValue(ValueTag.Closure_tag, blkSize);
                     accu = o;
                     for (int i = 0; i < nVars; i++) {
                         o.setField(i + envOffset, stack.get(i));
@@ -531,21 +531,21 @@ public class Interpreter {
                     /* Fallthrough */
 
                 case ATOM0:
-                    accu = new Atom(0);
+                    accu = new Atom(ValueTag.PAIR_TAG);
                     continue;
 
                 case PUSHATOM:
                     stack.push(accu);
                     /* Fallthrough */
                 case ATOM:
-                    accu = new Atom(pc.get());
+                    accu = new Atom(ValueTag.of(pc.get()));
                     pc = pc.inc();
                     continue;
 
                 case MAKEBLOCK: {
                     int woSize = pc.get();
                     pc = pc.inc();
-                    int tag = pc.get();
+                    ValueTag tag = ValueTag.of(pc.get());
                     pc = pc.inc();
                     ObjectValue o = new ObjectValue(tag, woSize);
                     o.setField(0, accu);
@@ -558,7 +558,7 @@ public class Interpreter {
                 }
 
                 case MAKEBLOCK1: {
-                    int tag = pc.get();
+                    ValueTag tag = ValueTag.of(pc.get());
                     pc = pc.inc();
                     ObjectValue o = new ObjectValue(tag, 1);
                     o.setField(0, accu);
@@ -566,7 +566,7 @@ public class Interpreter {
                     continue;
                 }
                 case MAKEBLOCK2: {
-                    int tag = pc.get();
+                    ValueTag tag = ValueTag.of(pc.get());
                     pc = pc.inc();
                     ObjectValue o = new ObjectValue(tag, 2);
                     o.setField(0, accu);
@@ -579,7 +579,7 @@ public class Interpreter {
                 case MAKEBLOCK3: {
                     int tag = pc.get();
                     pc = pc.inc();
-                    ObjectValue o = new ObjectValue(tag, 3);
+                    ObjectValue o = new ObjectValue(ValueTag.of(tag), 3);
                     o.setField(0, accu);
                     o.setField(1, stack.get(0));
                     o.setField(2, stack.get(1));
@@ -714,7 +714,7 @@ public class Interpreter {
                     int sizes = pc.get();
                     pc = pc.inc();
                     if (accu instanceof ObjectValue) {
-                        int index = ((ObjectValue) accu).getTag();
+                        int index = ((ObjectValue) accu).getTag().getTag();
                         //        CAMLassert ((uintnat) index < (sizes >> 16));
                         pc = pc.incN(pc.getN((sizes & 0xFFFF) + index));
                     } else {

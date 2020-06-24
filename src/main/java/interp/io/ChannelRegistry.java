@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static interp.value.ObjectValue.Pair_tag;
+import static interp.ValueTag.PAIR_TAG;
 import static interp.value.Value.Val_emptylist;
 
 public class ChannelRegistry {
@@ -41,7 +41,7 @@ public class ChannelRegistry {
             if (!(channelOperationsValue.getData() instanceof OutputStreamChannel)) {
                 continue;
             }
-            ObjectValue o = new ObjectValue(Pair_tag, 2);
+            ObjectValue o = new ObjectValue(PAIR_TAG, 2);
             o.setField(0, channelOperationsValue);
             o.setField(1, res);
             res = o;

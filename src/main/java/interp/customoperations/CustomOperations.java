@@ -15,4 +15,12 @@ public class CustomOperations<T> {
     public Function<DataInputStream, T> deserialize;
     public Comparator<T> compareExt;
     public Long customFixedLength;
+
+    public static <V> CustomOperationsValue<V> wrap(CustomOperations<V> co, V t) {
+        return new CustomOperationsValue<V>(co, t);
+    }
+
+    public static <V> V unwrap(CustomOperationsValue<V> c) {
+        return c.getData();
+    }
 }

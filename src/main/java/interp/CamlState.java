@@ -6,6 +6,7 @@ public class CamlState {
     private StackPointer trapSp = null;
     private boolean backTraceActive;
     private StackPointer externSp;
+    private boolean compareUnordered;
 
     public StackPointer getTrapSp() {
         return  trapSp;
@@ -29,5 +30,13 @@ public class CamlState {
 
     public StackPointer getExternSp() {
         return externSp;
+    }
+
+    public void setCompareUnordered(boolean compareUnordered) {
+        this.compareUnordered = compareUnordered;
+    }
+
+    public boolean getCompareUnordered() {
+        return compareUnordered;
     }
 }

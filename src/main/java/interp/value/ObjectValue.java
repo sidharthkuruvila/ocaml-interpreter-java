@@ -1,16 +1,17 @@
 package interp.value;
 
+import interp.ValueTag;
+
 import java.util.Arrays;
 
 public class ObjectValue implements Value, BaseArrayValue<ObjectValue> {
-    public static final int Pair_tag = 0;
 
 
     private final int prefix;
-    private final int tag;
+    private final ValueTag tag;
     private final Value[] fields;
 
-    public ObjectValue(int tag, int size) {
+    public ObjectValue(ValueTag tag, int size) {
         prefix = 0;
         this.tag = tag;
         fields = new Value[size];
@@ -22,13 +23,13 @@ public class ObjectValue implements Value, BaseArrayValue<ObjectValue> {
         this.tag = objectValue.tag;
     }
 
-    private ObjectValue(int tag, Value[] fields) {
+    private ObjectValue(ValueTag tag, Value[] fields) {
         this.prefix = 0;
         this.tag = tag;
         this.fields = fields;
     }
 
-    public static Value fromValueArray(int tag, Value[] arr) {
+    public static Value fromValueArray(ValueTag tag, Value[] arr) {
         return new ObjectValue(tag, arr);
     }
 
@@ -47,7 +48,7 @@ public class ObjectValue implements Value, BaseArrayValue<ObjectValue> {
         return fields.length - prefix;
     }
 
-    public int getTag() {
+    public ValueTag getTag() {
         return tag;
     }
 
