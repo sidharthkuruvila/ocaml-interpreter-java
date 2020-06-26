@@ -1,5 +1,6 @@
 package interp.customoperations;
 
+import interp.ValueTag;
 import interp.value.Value;
 
 public class CustomOperationsValue<V> implements Value {
@@ -19,5 +20,8 @@ public class CustomOperationsValue<V> implements Value {
         return data;
     }
 
+    public ValueTag getTag() {
+        return ValueTag.Custom_tag;
+    }
 
 }

@@ -62,7 +62,7 @@ public class Interpreter {
     public static final LongValue valTrue = new LongValue(1);
     private final ObjectValue globalData;
     private final Primitives primitives;
-    private final CamlState camlState = new CamlState();
+    private final CamlState camlState;
     private boolean somethingToDo;
 
     public boolean getSomethingToDo() {
@@ -117,10 +117,11 @@ public class Interpreter {
         FIRST_UNIMPLEMENTED_OP
     }
 
-    public Interpreter(ObjectValue globalData, Primitives primitives) {
+    public Interpreter(ObjectValue globalData, Primitives primitives, CamlState camlState) {
 
         this.globalData = globalData;
         this.primitives = primitives;
+        this.camlState = camlState;
     }
 
     public Value interpret(byte[] codeBytes) {

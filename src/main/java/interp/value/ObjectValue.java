@@ -23,7 +23,7 @@ public class ObjectValue implements Value, BaseArrayValue<ObjectValue> {
         this.tag = objectValue.tag;
     }
 
-    private ObjectValue(ValueTag tag, Value[] fields) {
+    public ObjectValue(ValueTag tag, Value[] fields) {
         this.prefix = 0;
         this.tag = tag;
         this.fields = fields;

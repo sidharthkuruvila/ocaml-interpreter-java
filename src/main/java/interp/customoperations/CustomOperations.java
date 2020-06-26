@@ -1,5 +1,7 @@
 package interp.customoperations;
 
+import interp.value.Value;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.util.Comparator;
@@ -13,7 +15,7 @@ public class CustomOperations<T> {
     public Function<T, Integer> hash;
     public Function<T, DataOutputStream> serialize;
     public Function<DataInputStream, T> deserialize;
-    public Comparator<T> compareExt;
+    public Comparator<Value> compareExt;
     public Long customFixedLength;
 
     public static <V> CustomOperationsValue<V> wrap(CustomOperations<V> co, V t) {

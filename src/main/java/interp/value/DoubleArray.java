@@ -1,6 +1,7 @@
 package interp.value;
 
 import interp.LongValue;
+import interp.ValueTag;
 
 import java.util.Arrays;
 
@@ -66,5 +67,8 @@ public class DoubleArray implements BaseArrayValue<DoubleArray>, Value {
         return new DoubleArray(new double[LongValue.unwrapInt((LongValue) size)]);
     }
 
+    public ValueTag getTag() {
+        return ValueTag.Double_array_tag;
+    }
 
 }

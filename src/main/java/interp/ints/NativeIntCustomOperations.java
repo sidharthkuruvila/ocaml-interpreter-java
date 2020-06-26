@@ -1,5 +1,6 @@
 package interp.ints;
 
+import interp.Fail;
 import interp.LongValue;
 import interp.customoperations.CustomOperations;
 import interp.customoperations.CustomOperationsValue;
@@ -36,12 +37,60 @@ public class NativeIntCustomOperations extends CustomOperations<Long> {
         customFixedLength = 8l;
     }
 
+
+    public static CustomOperationsValue<Long> add(CustomOperationsValue<Long> v1, CustomOperationsValue<Long> v2){
+        return wrap(v1.ops(), unwrap(v1) + unwrap(v2));
+    }
+
     public static CustomOperationsValue<Long> sub(CustomOperationsValue<Long> v1, CustomOperationsValue<Long> v2){
         return wrap(v1.ops(), unwrap(v1) - unwrap(v2));
     }
-    public static CustomOperationsValue<Long> lsl(CustomOperationsValue<Long> v1, LongValue v2){
+
+    public static CustomOperationsValue<Long> mul(CustomOperationsValue<Long> v1, CustomOperationsValue<Long> v2){
+        return wrap(v1.ops(), unwrap(v1) * unwrap(v2));
+    }
+
+    public static CustomOperationsValue<Long> div(CustomOperationsValue<Long> v1, CustomOperationsValue<Long> v2){
+        long dividend = unwrap(v1);
+        long divisor = unwrap(v2);
+        if (divisor == 0) Fail.caml_raise_zero_divide();
+        return wrap(v1.ops(), dividend / divisor);
+    }
+
+    public static CustomOperationsValue<Long> mod(CustomOperationsValue<Long> v1, CustomOperationsValue<Long> v2){
+        long dividend = unwrap(v1);
+        long divisor = unwrap(v2);
+        return wrap(v1.ops(), dividend % divisor);
+    }
+
+    public static CustomOperationsValue<Long> shift_left(CustomOperationsValue<Long> v1, LongValue v2){
         return wrap(v1.ops(), unwrap(v1) >> LongValue.unwrap(v2));
     }
+
+    public static CustomOperationsValue<Long> shift_right(CustomOperationsValue<Long> v1, LongValue v2){
+        return wrap(v1.ops(), unwrap(v1) >> LongValue.unwrap(v2));
+    }
+
+    public static CustomOperationsValue<Long> shift_right_unsigned(CustomOperationsValue<Long> v1, LongValue v2){
+        return wrap(v1.ops(), unwrap(v1) >>> LongValue.unwrap(v2));
+    }
+
+    public static CustomOperationsValue<Long> and(CustomOperationsValue<Long> v1, CustomOperationsValue<Long> v2) {
+        return wrap(v1.ops(), unwrap(v1) & unwrap(v2));
+    }
+
+    public static CustomOperationsValue<Long> or(CustomOperationsValue<Long> v1, CustomOperationsValue<Long> v2) {
+        return wrap(v1.ops(), unwrap(v1) | unwrap(v2));
+    }
+
+    public static CustomOperationsValue<Long> xor(CustomOperationsValue<Long> v1, CustomOperationsValue<Long> v2) {
+        return wrap(v1.ops(), unwrap(v1) ^ unwrap(v2));
+    }
+
+    public static LongValue compare(CustomOperationsValue<Long> v1, CustomOperationsValue<Long> v2) {
+        return LongValue.wrap(unwrap(v1) - unwrap(v2));
+    }
+
 
     public static CustomOperationsValue<Long> ofInt(LongValue longValue){
         return new CustomOperationsValue<>(new NativeIntCustomOperations(), LongValue.unwrap(longValue));
@@ -53,5 +102,16 @@ public class NativeIntCustomOperations extends CustomOperations<Long> {
 
     public static CustomOperationsValue<Long> ofString(StringValue stringValue) {
         return new CustomOperationsValue<>(new NativeIntCustomOperations(), Long.parseLong(stringValue.toString()));
+    }
+
+    public static CustomOperationsValue<Long> neg(CustomOperationsValue<Long> value) {
+        return wrap(value.ops(), -1 * unwrap(value));
+    }
+
+    public static StringValue format(StringValue formatStringValue, CustomOperationsValue<Long> value) {
+        String formatString = formatStringValue.getString();
+        long n = unwrap(value);
+        String formatted = String.format(formatString, n);
+        return StringValue.ofString(formatted);
     }
 }

@@ -1,5 +1,7 @@
 package interp.value;
 
+import interp.ValueTag;
+
 public class DoubleValue implements Value {
     private final double value;
 
@@ -9,6 +11,10 @@ public class DoubleValue implements Value {
 
     public double getValue() {
         return value;
+    }
+
+    public ValueTag getTag(){
+        return ValueTag.Double_tag;
     }
 
     public static DoubleValue add(DoubleValue value, DoubleValue value1) {
@@ -99,4 +105,6 @@ public class DoubleValue implements Value {
     public static DoubleValue fma(DoubleValue t, DoubleValue u, DoubleValue v) {
         return wrap(Math.fma(unwrap(t), unwrap(u), unwrap(v)));
     }
+
+
 }

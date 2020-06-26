@@ -107,7 +107,7 @@ let test_ref _ =
 (*hello world*)
 let _ = begin
   test_ref ();
-  (*test_nativeint ();*)
+  test_nativeint ();
   test1 ();
   test2 ();
   test3 ();

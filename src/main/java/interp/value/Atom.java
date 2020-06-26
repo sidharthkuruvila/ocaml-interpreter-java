@@ -8,4 +8,8 @@ public class Atom implements Value {
     public Atom(ValueTag tag) {
         this.tag = tag;
     }
+
+    public ValueTag getTag(){
+        return tag;
+    }
 }

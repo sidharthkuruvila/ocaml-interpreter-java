@@ -13,19 +13,21 @@ import java.nio.file.Path;
 public class ExecutableFileInterpreter {
     private final ExecutableBuilder exb;
     private final PrimitiveRegistry primitiveRegistry;
-
+    private final CamlState camlState = new CamlState();
 
     public ExecutableFileInterpreter() throws IOException {
         this(new ChannelRegistry());
     }
 
     public ExecutableFileInterpreter(ChannelRegistry channelRegistry) throws IOException {
+
         OOIdGenerator ooIdGenerator = new OOIdGenerator();
         CustomOperationsList customOperationsList = new CustomOperationsList();
         CodeFragmentTable codeFragmentTable = new CodeFragmentTable();
         Intern intern = new Intern(customOperationsList, codeFragmentTable, ooIdGenerator);
         exb = new ExecutableBuilder(codeFragmentTable, intern);
         primitiveRegistry = new PrimitiveRegistry();
+        Compare compare = new Compare(camlState);
 
         NamedValues namedValues = new NamedValues();
 
@@ -197,8 +199,8 @@ public class ExecutableFileInterpreter {
         primitiveRegistry.unimplemented("caml_get_minor_free");
         primitiveRegistry.unimplemented("caml_get_public_method");
         primitiveRegistry.unimplemented("caml_get_section_table");
-        primitiveRegistry.unimplemented("caml_greaterequal");
-        primitiveRegistry.unimplemented("caml_greaterthan");
+        primitiveRegistry.addFunc2("caml_greaterequal", compare::greaterEqual);
+        primitiveRegistry.addFunc2("caml_greaterthan", compare::greaterThan);
         primitiveRegistry.unimplemented("caml_gt_float");
         primitiveRegistry.unimplemented("caml_hash");
         primitiveRegistry.unimplemented("caml_hash_univ_param");
@@ -323,29 +325,29 @@ public class ExecutableFileInterpreter {
         primitiveRegistry.addPrimitive(new MlStringLength());
         primitiveRegistry.unimplemented("caml_modf_float");
         primitiveRegistry.addFunc2("caml_mul_float", DoubleValue::mul);
-        primitiveRegistry.unimplemented("caml_nativeint_add");
-        primitiveRegistry.unimplemented("caml_nativeint_and");
+        primitiveRegistry.addFunc2("caml_nativeint_add", NativeIntCustomOperations::add);
+        primitiveRegistry.addFunc2("caml_nativeint_and", NativeIntCustomOperations::and);
         primitiveRegistry.unimplemented("caml_nativeint_bswap");
-        primitiveRegistry.unimplemented("caml_nativeint_compare");
-        primitiveRegistry.unimplemented("caml_nativeint_div");
-        primitiveRegistry.unimplemented("caml_nativeint_format");
-        primitiveRegistry.unimplemented("caml_nativeint_mod");
-        primitiveRegistry.unimplemented("caml_nativeint_mul");
-        primitiveRegistry.unimplemented("caml_nativeint_neg");
+        primitiveRegistry.addFunc2("caml_nativeint_compare", NativeIntCustomOperations::compare);
+        primitiveRegistry.addFunc2("caml_nativeint_div", NativeIntCustomOperations::div);
+        primitiveRegistry.addFunc2("caml_nativeint_format", NativeIntCustomOperations::format);
+        primitiveRegistry.addFunc2("caml_nativeint_mod", NativeIntCustomOperations::mod);
+        primitiveRegistry.addFunc2("caml_nativeint_mul", NativeIntCustomOperations::mul);
+        primitiveRegistry.addFunc1("caml_nativeint_neg", NativeIntCustomOperations::neg);
         primitiveRegistry.addFunc1("caml_nativeint_of_float", NativeIntCustomOperations::ofFloat);
         primitiveRegistry.addFunc1("caml_nativeint_of_int", NativeIntCustomOperations::ofInt);
         primitiveRegistry.unimplemented("caml_nativeint_of_int32");
         primitiveRegistry.addFunc1("caml_nativeint_of_string", NativeIntCustomOperations::ofString);
-        primitiveRegistry.unimplemented("caml_nativeint_or");
+        primitiveRegistry.addFunc2("caml_nativeint_or", NativeIntCustomOperations::or);
 
-        primitiveRegistry.addFunc2("caml_nativeint_shift_left", NativeIntCustomOperations::lsl);
-        primitiveRegistry.unimplemented("caml_nativeint_shift_right");
-        primitiveRegistry.unimplemented("caml_nativeint_shift_right_unsigned");
+        primitiveRegistry.addFunc2("caml_nativeint_shift_left", NativeIntCustomOperations::shift_left);
+        primitiveRegistry.addFunc2("caml_nativeint_shift_right", NativeIntCustomOperations::shift_right);
+        primitiveRegistry.addFunc2("caml_nativeint_shift_right_unsigned", NativeIntCustomOperations::shift_right_unsigned);
         primitiveRegistry.addFunc2("caml_nativeint_sub", NativeIntCustomOperations::sub);
         primitiveRegistry.unimplemented("caml_nativeint_to_float");
         primitiveRegistry.unimplemented("caml_nativeint_to_int");
         primitiveRegistry.unimplemented("caml_nativeint_to_int32");
-        primitiveRegistry.unimplemented("caml_nativeint_xor");
+        primitiveRegistry.addFunc2("caml_nativeint_xor", NativeIntCustomOperations::xor);
         primitiveRegistry.addFunc1("caml_neg_float", DoubleValue::neg);
         primitiveRegistry.unimplemented("caml_neq_float");
         primitiveRegistry.unimplemented("caml_new_lex_engine");
@@ -463,7 +465,7 @@ public class ExecutableFileInterpreter {
         FileChannel fc = FileChannel.open(path);
         Executable e = exb.fromExe(fc);
         Primitives primitives = primitiveRegistry.getPrimitives(e.getPrims());
-        Interpreter interpreter = new Interpreter(e.getGlobalData(), primitives);
+        Interpreter interpreter = new Interpreter(e.getGlobalData(), primitives, camlState);
 //            HexPrinter.printBytes(e.getCodeFragment().code);
 
         interpreter.interpret(e.getCodeFragment().code);

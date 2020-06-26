@@ -173,8 +173,4 @@ public class LongValue implements Value {
         String formatted = String.format(formatString, n);
         return StringValue.ofString(formatted);
     }
-
-    public static Value lsl2(LongValue value, LongValue value1) {
-        return value.lsl(value1);
-    }
 }

@@ -2,7 +2,9 @@ package interp.value;
 
 import interp.LongValue;
 import interp.Sys;
+import interp.ValueTag;
 import interp.exceptions.CamlInvalidArgument;
+import interp.stack.ValueStack;
 
 import static interp.Interpreter.valUnit;
 
@@ -73,5 +75,9 @@ public class StringValue implements Value {
     }
     public static StringValue wrap(byte[] bytes) {
         return new StringValue(bytes);
+    }
+
+    public ValueTag getTag() {
+        return ValueTag.String_tag;
     }
 }

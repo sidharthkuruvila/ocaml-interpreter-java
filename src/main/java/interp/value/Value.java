@@ -43,4 +43,16 @@ public interface Value {
     default CustomOperationsValue<Value> asCustomOperationsValue(){
         return (CustomOperationsValue<Value>) this;
     }
+
+    default StringValue asStringValue() {
+        return (StringValue) this;
+    }
+
+    default DoubleValue asDoubleValue() {
+        return (DoubleValue) this;
+    }
+
+    default DoubleArray asDoubleArrayValue(){
+        return (DoubleArray) this;
+    }
 }
