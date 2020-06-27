@@ -1,12 +1,14 @@
 package interp;
 
 import interp.stack.StackPointer;
+import interp.value.Value;
 
 public class CamlState {
     private StackPointer trapSp = null;
     private boolean backTraceActive;
     private StackPointer externSp;
     private boolean compareUnordered;
+    private Value exceptionBucket;
 
     public StackPointer getTrapSp() {
         return  trapSp;
@@ -38,5 +40,13 @@ public class CamlState {
 
     public boolean getCompareUnordered() {
         return compareUnordered;
+    }
+
+    public void setExceptionBucket(Value exceptionBucket) {
+        this.exceptionBucket = exceptionBucket;
+    }
+
+    public Value getExceptionBucket() {
+        return exceptionBucket;
     }
 }

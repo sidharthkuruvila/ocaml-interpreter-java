@@ -86,26 +86,44 @@ let test9 _ =
 
 
 let test_nativeint _ =
+  print_endline "Test nativeint";
   let open Nativeint in
   let a = of_float 3.5 in
   let b = of_int 4 in
   let c = of_string "7" in
-  (*let d = of_string_opt "abc" in*)
+  let d = match of_string_opt "abc" with | None -> of_int 23 | Some _ -> failwith "Expected None" in
   let e = one in
   let f = abs minus_one in
   let g = add b c in
-  let h = compare b c in
+  let h = of_int (compare b c) in
   let i = div c a in
-  print_endline "Test nativeint";
-  print_endline  (to_string i)
+  let j = match of_string_opt "17" with | None -> failwith "Expected a number" | Some n -> n  in
+  let k = [| a; b; c; d; e; f; g; h; i; j |] in
+  let l = Array.fold_left add zero k in
+  print_endline  (to_string l)
 
 let test_ref _ =
   let x = ref 1 in
   x := 1 + !x;
   print_endline (string_of_int !x)
 
+exception Exp of string
+
+let throws_exception _ =
+  raise (Exp "Exception")
+
+let test_exception _ = begin
+  print_endline "test_exception";
+  try
+    throws_exception ()
+  with Exp message ->
+    print_endline message
+end
+
+
 (*hello world*)
 let _ = begin
+  test_exception ();
   test_ref ();
   test_nativeint ();
   test1 ();

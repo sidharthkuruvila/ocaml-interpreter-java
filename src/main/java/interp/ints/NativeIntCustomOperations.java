@@ -29,6 +29,7 @@ public class NativeIntCustomOperations extends CustomOperations<Long> {
         }
     }
 
+    //TODO Make singleton
     public NativeIntCustomOperations() {
         identifier = "_n";
         compare = Long::compare;
@@ -88,7 +89,7 @@ public class NativeIntCustomOperations extends CustomOperations<Long> {
     }
 
     public static LongValue compare(CustomOperationsValue<Long> v1, CustomOperationsValue<Long> v2) {
-        return LongValue.wrap(unwrap(v1) - unwrap(v2));
+        return LongValue.wrap(Long.compare(unwrap(v1), unwrap(v2)));
     }
 
 
@@ -101,7 +102,11 @@ public class NativeIntCustomOperations extends CustomOperations<Long> {
     }
 
     public static CustomOperationsValue<Long> ofString(StringValue stringValue) {
-        return new CustomOperationsValue<>(new NativeIntCustomOperations(), Long.parseLong(stringValue.toString()));
+        try {
+            return new CustomOperationsValue<>(new NativeIntCustomOperations(), Long.parseLong(stringValue.toString()));
+        } catch(NumberFormatException e) {
+            throw Fail.failWithException("Nativeint.of_string");
+        }
     }
 
     public static CustomOperationsValue<Long> neg(CustomOperationsValue<Long> value) {
