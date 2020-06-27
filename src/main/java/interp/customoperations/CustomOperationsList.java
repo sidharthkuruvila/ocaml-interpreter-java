@@ -14,9 +14,9 @@ public class CustomOperationsList {
 
     public CustomOperationsList() {
 
-        customOperationsList.add(new Int64CustomOperations());
-        customOperationsList.add(new Int32CustomOperations());
-        customOperationsList.add(new NativeIntCustomOperations());
+        customOperationsList.add(Int64CustomOperations.getInstance());
+        customOperationsList.add(Int32CustomOperations.getInstance());
+        customOperationsList.add(NativeIntCustomOperations.getInstance());
     }
 
     public CustomOperations findCustomOperations(String ident) {

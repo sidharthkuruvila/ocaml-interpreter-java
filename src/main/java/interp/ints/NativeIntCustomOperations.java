@@ -30,7 +30,7 @@ public class NativeIntCustomOperations extends CustomOperations<Long> {
     }
 
     //TODO Make singleton
-    public NativeIntCustomOperations() {
+    private NativeIntCustomOperations() {
         identifier = "_n";
         compare = Long::compare;
         hash = (Long a) -> a.hashCode();
@@ -94,16 +94,16 @@ public class NativeIntCustomOperations extends CustomOperations<Long> {
 
 
     public static CustomOperationsValue<Long> ofInt(LongValue longValue){
-        return new CustomOperationsValue<>(new NativeIntCustomOperations(), LongValue.unwrap(longValue));
+        return new CustomOperationsValue<>(getInstance(), LongValue.unwrap(longValue));
     }
 
     public static CustomOperationsValue<Long> ofFloat(DoubleValue t) {
-        return new CustomOperationsValue<>(new NativeIntCustomOperations(), (long)DoubleValue.unwrap(t));
+        return new CustomOperationsValue<>(getInstance(), (long)DoubleValue.unwrap(t));
     }
 
     public static CustomOperationsValue<Long> ofString(StringValue stringValue) {
         try {
-            return new CustomOperationsValue<>(new NativeIntCustomOperations(), Long.parseLong(stringValue.toString()));
+            return new CustomOperationsValue<>(getInstance(), Long.parseLong(stringValue.toString()));
         } catch(NumberFormatException e) {
             throw Fail.failWithException("Nativeint.of_string");
         }
@@ -118,5 +118,11 @@ public class NativeIntCustomOperations extends CustomOperations<Long> {
         long n = unwrap(value);
         String formatted = String.format(formatString, n);
         return StringValue.ofString(formatted);
+    }
+
+
+    private static final NativeIntCustomOperations INSTANCE = new NativeIntCustomOperations();
+    public static NativeIntCustomOperations getInstance(){
+        return INSTANCE;
     }
 }
