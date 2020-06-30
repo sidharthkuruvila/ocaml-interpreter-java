@@ -1,5 +1,6 @@
 package interp.value;
 
+import interp.LongValue;
 import interp.ValueTag;
 
 import java.util.Arrays;
@@ -42,6 +43,18 @@ public class ObjectValue implements Value, BaseArrayValue<ObjectValue> {
 
     public Value getField(int field) {
         return fields[prefix + field];
+    }
+
+    public ObjectValue getObjectValueField(int field) {
+        return (ObjectValue)getField(field);
+    }
+
+    public int getIntField(int field) {
+        return LongValue.unwrapInt((LongValue) getField(field));
+    }
+
+    public String getStringField(int field) {
+        return ((StringValue) getField(field)).getString();
     }
 
     public int getSize() {

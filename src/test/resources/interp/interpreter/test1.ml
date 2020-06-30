@@ -1,4 +1,3 @@
-
 let make_string_from_array ~f ~sep array =
   let e = ref (f (Array.get array 0)) in
   for i = 1 to (Array.length array) - 1 do
@@ -121,8 +120,24 @@ let test_exception _ = begin
 end
 
 
+class foo =
+object(self)
+  val mutable v = "hello"
+  method get = v
+  method set x = v <- x
+end
+
+let test_oops _ =
+  print_endline "test_oops";
+  let o = new foo in
+  let a: string = Obj.obj (Obj.field (Obj.repr o) 2) in
+  print_endline a;
+  o#set "world";
+  print_endline (o#get)
+
 (*hello world*)
 let _ = begin
+  test_oops ();
   test_exception ();
   test_ref ();
   test_nativeint ();

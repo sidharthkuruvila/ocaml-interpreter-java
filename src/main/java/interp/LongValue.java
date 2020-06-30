@@ -173,4 +173,8 @@ public class LongValue implements Value {
         String formatted = String.format(formatString, n);
         return StringValue.ofString(formatted);
     }
+
+    public static LongValue compare(LongValue t, LongValue u) {
+        return wrap(Long.compare(unwrap(t), unwrap(u)));
+    }
 }

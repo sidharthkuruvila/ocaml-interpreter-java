@@ -32,23 +32,6 @@ class InfixOffsetValue implements Value {
     }
 }
 
-class Code {
-    final int[] code;
-
-    public Code(byte[] codeBytes) {
-        assert codeBytes.length % 4 == 0;
-        int[] code = new int[codeBytes.length / 4];
-        for (int i = 0; i < codeBytes.length; i += 4) {
-            int ch4 = 0xFF & codeBytes[i];
-            int ch3 = 0xFF & codeBytes[i + 1];
-            int ch2 = 0xFF & codeBytes[i + 2];
-            int ch1 = 0xFF & codeBytes[i + 3];
-            code[i / 4] = (ch1 << 24) + (ch2 << 16) + (ch3 << 8) + (ch4 << 0);
-        }
-        this.code = code;
-    }
-}
-
 
 public class Interpreter {
     private static final Logger logger = Logger.getLogger(Interpreter.class.getName());
@@ -63,6 +46,7 @@ public class Interpreter {
     private final ObjectValue globalData;
     private final Primitives primitives;
     private final CamlState camlState;
+    private final List<Executable.DebugEvent> debugEvents;
     private boolean somethingToDo;
 
     public boolean getSomethingToDo() {
@@ -117,20 +101,20 @@ public class Interpreter {
         FIRST_UNIMPLEMENTED_OP
     }
 
-    public Interpreter(ObjectValue globalData, Primitives primitives, CamlState camlState) {
+    public Interpreter(ObjectValue globalData, Primitives primitives, CamlState camlState, List<Executable.DebugEvent> debugEvents) {
 
         this.globalData = globalData;
         this.primitives = primitives;
         this.camlState = camlState;
+        this.debugEvents = debugEvents;
     }
 
-    public Value interpret(byte[] codeBytes) {
+    public Value interpret(Code code) {
         List<Instructions> instructionTrace = new ArrayList<>();
         ValueStack stack = new ValueStack();
         Value accu = null;
         int extraArgs = 0;
 
-        Code code = new Code(codeBytes);
         CodePointer pc = new CodePointer(code, 0);
 
         Instructions[] instructions = Instructions.values();
@@ -141,8 +125,9 @@ public class Interpreter {
             boolean raiseNoTrace = false;
             try {
                 Instructions currInstr = instructions[pc.get()];
+
                 pc = pc.inc();
-//            System.out.println(currInstr);
+//                System.out.println(currInstr + ", " + pc.index);
                 instructionTrace.add(currInstr);
                 switch (currInstr) {
                     case ACC0:
@@ -214,6 +199,7 @@ public class Interpreter {
                         continue;
                     case ASSIGN:
                         stack.set(pc.get(), accu);
+                        pc = pc.inc();
                         accu = valUnit;
                         continue;
                         /* Access in heap-allocated environment */
@@ -638,14 +624,17 @@ public class Interpreter {
                         ((ObjectValue) accu).setField(1, stack.get(0));
                         stack.popNIgnore(1);
                         accu = valUnit;
+                        continue;
                     case SETFIELD2:
                         ((ObjectValue) accu).setField(2, stack.get(0));
                         stack.popNIgnore(1);
                         accu = valUnit;
+                        continue;
                     case SETFIELD3:
                         ((ObjectValue) accu).setField(3, stack.get(0));
                         stack.popNIgnore(1);
                         accu = valUnit;
+                        continue;
                     case SETFIELD:
                         ((ObjectValue) accu).setField(pc.get(), stack.get(0));
                         stack.popNIgnore(1);
@@ -664,7 +653,9 @@ public class Interpreter {
          be split into VECTLENGTH and FLOATVECTLENGTH because we know
          statically which one it is. */
                         int size;
-                        if (accu instanceof ObjectValue) {
+                        if (accu instanceof Atom) {
+                            size = 0;
+                        } else if (accu instanceof ObjectValue) {
                             size = ((ObjectValue) accu).getSize();
                         } else {
                             size = ((DoubleArray) accu).getSize();
@@ -1013,12 +1004,15 @@ public class Interpreter {
                         accu = ((LongValue) accu).lsr((LongValue) stack.pop());
                         continue;
 
-                    case EQ:
-                        if (accu instanceof LongValue)
-                            accu = ((LongValue) accu).eq((LongValue) stack.pop());
+                    case EQ: {
+                        Value left = accu;
+                        Value right = stack.pop();
+                        if (left instanceof LongValue && right instanceof LongValue)
+                            accu = ((LongValue) left).eq((LongValue) right);
                         else
-                            accu = booleanValue(accu == stack.pop());
+                            accu = booleanValue(left == right);
                         continue;
+                    }
                     case NEQ:
                         accu = ((LongValue) accu).neq((LongValue) stack.pop());
                         continue;
@@ -1051,7 +1045,8 @@ public class Interpreter {
                         continue;
                     }
                     case BNEQ: {
-                        if (pc.get() != ((LongValue) accu).getValue()) {
+
+                        if (!(accu instanceof LongValue) || pc.get() != ((LongValue) accu).getValue()) {
                             pc = pc.inc();
                             pc = pc.incN(pc.get());
                         } else {
@@ -1117,22 +1112,55 @@ public class Interpreter {
                         accu = ((LongValue) accu).add(pc.getLongValue());
                         pc = pc.inc();
                         continue;
-//    Instruct(OFFSETREF):
-//      Field(accu, 0) += *pc << 1;
-//      accu = Val_unit;
-//      pc++;
-//      Next;
+                    case OFFSETREF: {
+                        ObjectValue objectValue = (ObjectValue) accu;
+                        long v = LongValue.unwrap((LongValue) objectValue.getField(0));
+                        objectValue.setField(0, LongValue.wrap(v + pc.get()));
+                        accu = valUnit;
+                        pc = pc.inc();
+                        continue;
+                    }
                     case ISINT: {
                         accu = booleanValue(accu instanceof LongValue);
                         continue;
                     }
+//
+                    case GETMETHOD: {
+                        ObjectValue obj = (ObjectValue) stack.get(0);
+                        int lab = LongValue.unwrapInt((LongValue) accu);
+                        accu = obj.getObjectValueField(0).getField(lab);
+                        continue;
+                    }
+                    //TODO Look at th optimizaton
+                    case GETPUBMET:
+                        stack.push(accu);
+                        accu = LongValue.wrap(pc.get());
+                        pc = pc.incN(2);
+                        /* Fallthrough */
+                    case GETDYNMET: {
+                        /* accu == tag, sp[0] == object, *pc == cache */
+                        ObjectValue meths = ((ObjectValue) stack.get(0)).getObjectValueField(0);
+                        int li = 3, hi = (meths.getIntField(0) << 1) + 1, mi;
+                        int tag = LongValue.unwrapInt((LongValue) accu);
+                        while (li < hi) {
+                            mi = ((li + hi) >> 1) | 1;
+                            if (tag < meths.getIntField(mi)) {
+                                hi = mi - 2;
+                            } else {
+                                li = mi;
+                            }
+                        }
+                        accu = meths.getField(li - 1);
+                        continue;
+                    }
+
                     case STOP:
                         return accu;
                     default: {
                         throw new RuntimeException(String.format("Instruction %s not implemented", currInstr));
                     }
                 }
-            }catch (OcamlInterpreterException e) {
+            } catch (OcamlInterpreterException e) {
                 Value v = e.getBucket(globalData);
                 camlState.setExceptionBucket(v);
                 stack.reset(camlState.getExternSp());
@@ -1141,7 +1169,7 @@ public class Interpreter {
                 raiseNoTrace = true;
 
             }
-            if(raiseNoTrace) {
+            if (raiseNoTrace) {
                 StackPointer trapSp = camlState.getTrapSp();
 //        throw new RuntimeException("Not implemented yet");
 

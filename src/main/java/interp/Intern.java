@@ -16,12 +16,12 @@ import java.util.*;
 
 import static interp.ValueTag.Object_tag;
 
-
-class DataInStream extends DataInputStream {
-    public DataInStream(ByteBuffer bf){
-        super(new ByteArrayInputStream(bf.array()));
-    }
-}
+//
+//class DataInStream extends DataInputStream {
+//    public DataInStream(ByteBuffer bf){
+//        super(new ByteArrayInputStream(bf.array()));
+//    }
+//}
 
 /*@NotThreadSafe
 class DataInStream {
@@ -91,14 +91,14 @@ class DataInStream {
 }*/
 
 class CodeFragment {
-    final byte[] code;
+    final Code code;
     final byte[] digest;
 
     public CodeFragment(byte[] code) {
         try {
             MessageDigest md5 = MessageDigest.getInstance("MD5");
             byte[] digest = md5.digest(code);
-            this.code = code;
+            this.code = new Code(code);;
             this.digest = digest;
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
@@ -123,7 +123,7 @@ class CodeFragmentTable {
         for(CodeFragment codeFragment : codeFragments) {
 
             if(Arrays.equals(digest, codeFragment.digest)) {
-                if(offset >= codeFragment.code.length) {
+                if(offset >= codeFragment.code.code.length) {
                     throw new RuntimeException("Not enough code to point to");
                 }
                 return new CodePointerValue(codeFragment, offset);
@@ -230,10 +230,14 @@ public class Intern {
         this.ooIdGenerator = ooIdGenerator;
     }
 
+
     public Value inputValue(ByteBuffer bf) throws IOException {
 
-        DataInStream dis = new DataInStream(bf);
+        DataInputStream dis = new DataInputStream(new ByteArrayInputStream(bf.array()));
+        return inputValue(dis);
+    }
 
+    public Value inputValue(DataInputStream dis) throws IOException {
         int magic = dis.readInt();
         /*
         /* Header format for the "small" model: 20 bytes
@@ -276,7 +280,7 @@ public class Intern {
 
 
 
-    Value internRec(List<Value> internObjectTable, DataInStream dis) throws IOException {
+    Value internRec(List<Value> internObjectTable, DataInputStream dis) throws IOException {
         Deque<InternStackEntry> internStack = new ArrayDeque<>();
         ObjectValue bottom = new ObjectValue(ValueTag.PAIR_TAG, 1);
         int field = 0;
@@ -478,7 +482,7 @@ public class Intern {
         }
     }
 
-    private double readDouble(DataInStream dis, boolean isLittle) throws IOException {
+    private double readDouble(DataInputStream dis, boolean isLittle) throws IOException {
         byte[] bytes = new byte[Double.BYTES];
         dis.read(bytes);
         ByteBuffer bf = ByteBuffer.wrap(bytes);
@@ -488,7 +492,7 @@ public class Intern {
         return bf.getDouble();
     }
 
-    String readCString(DataInStream is) throws IOException {
+    String readCString(DataInputStream is) throws IOException {
         int ch;
         StringBuilder sb = new StringBuilder();
         while((ch = is.readUnsignedByte()) != 0) {
@@ -498,7 +502,7 @@ public class Intern {
     }
 
 
-    private Value readDoubleArray(List<Value> internObjectTable, DataInStream dis, int len, boolean littleEndian) throws IOException {
+    private Value readDoubleArray(List<Value> internObjectTable, DataInputStream dis, int len, boolean littleEndian) throws IOException {
         double[] arr = new double[len];
         for(int i = 0; i < len; i++) {
             arr[i] = readDouble(dis, littleEndian);
@@ -508,7 +512,7 @@ public class Intern {
         return v;
     }
 
-    private Value readString(List<Value> internObjectTable, DataInStream dis, int len) throws IOException {
+    private Value readString(List<Value> internObjectTable, DataInputStream dis, int len) throws IOException {
         byte[] bytes = new byte[len];
         dis.read(bytes);
         Value v = new StringValue(bytes);
@@ -516,7 +520,7 @@ public class Intern {
         return v;
     }
 
-    private Value readBlock(List<Value> internObjectTable, DataInStream dis, ValueTag tag, int size) throws IOException {
+    private Value readBlock(List<Value> internObjectTable, DataInputStream dis, ValueTag tag, int size) throws IOException {
         if (size == 0) {
             return new Atom(tag);
         } else {

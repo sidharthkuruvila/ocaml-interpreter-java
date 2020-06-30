@@ -6,6 +6,8 @@ import interp.ValueTag;
 import interp.exceptions.CamlInvalidArgument;
 import interp.stack.ValueStack;
 
+import java.util.Arrays;
+
 import static interp.Interpreter.valUnit;
 
 public class StringValue implements Value {
@@ -79,5 +81,17 @@ public class StringValue implements Value {
 
     public ValueTag getTag() {
         return ValueTag.String_tag;
+    }
+
+    public static Value compare(StringValue t, StringValue u) {
+        return LongValue.wrap(Arrays.compare(t.bytes, u.bytes));
+    }
+
+    public static Value notEqual(StringValue t, StringValue u) {
+        return Value.booleanValue(Arrays.compare(t.bytes, u.bytes)!=0);
+    }
+
+    public static Value equal(StringValue t, StringValue u) {
+        return Value.booleanValue(Arrays.compare(t.bytes, u.bytes)==0);
     }
 }

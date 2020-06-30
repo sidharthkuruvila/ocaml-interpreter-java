@@ -271,4 +271,9 @@ public class Compare {
         long res = compare(value1, value2, false);
         return Value.booleanValue(res > 0);
     }
+
+    Value equal(Value value1, Value value2) {
+        long res = compare(value1, value2, false);
+        return Value.booleanValue(res == 0);
+    }
 }

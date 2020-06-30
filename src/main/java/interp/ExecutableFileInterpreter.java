@@ -1,5 +1,6 @@
 package interp;
 
+import com.google.common.primitives.Ints;
 import interp.customoperations.CustomOperationsList;
 import interp.ints.NativeIntCustomOperations;
 import interp.io.ChannelRegistry;
@@ -151,7 +152,7 @@ public class ExecutableFileInterpreter {
         primitiveRegistry.unimplemented("caml_ephe_unset_data");
         primitiveRegistry.unimplemented("caml_ephe_unset_key");
         primitiveRegistry.unimplemented("caml_eq_float");
-        primitiveRegistry.unimplemented("caml_equal");
+        primitiveRegistry.addFunc2("caml_equal", compare::equal);
         primitiveRegistry.unimplemented("caml_eventlog_pause");
         primitiveRegistry.unimplemented("caml_eventlog_resume");
         primitiveRegistry.unimplemented("caml_exp_float");
@@ -269,7 +270,7 @@ public class ExecutableFileInterpreter {
         primitiveRegistry.unimplemented("caml_int64_xor");
         primitiveRegistry.unimplemented("caml_int64_xor_native");
         primitiveRegistry.unimplemented("caml_int_as_pointer");
-        primitiveRegistry.unimplemented("caml_int_compare");
+        primitiveRegistry.addFunc2("caml_int_compare", LongValue::compare);
         primitiveRegistry.unimplemented("caml_int_of_float");
         primitiveRegistry.addFunc1("caml_int_of_string", LongValue::parseString);
         primitiveRegistry.unimplemented("caml_invoke_traced_function");
@@ -354,7 +355,7 @@ public class ExecutableFileInterpreter {
         primitiveRegistry.unimplemented("caml_nextafter_float");
         primitiveRegistry.unimplemented("caml_notequal");
         primitiveRegistry.unimplemented("caml_obj_add_offset");
-        primitiveRegistry.unimplemented("caml_obj_block");
+        primitiveRegistry.addFunc2("caml_obj_block", Obj::objBlock);
         primitiveRegistry.addFunc1("caml_obj_dup", BaseArrayValue::duplicateArray);
         primitiveRegistry.unimplemented("caml_obj_is_block");
         primitiveRegistry.unimplemented("caml_obj_make_forward");
@@ -383,7 +384,7 @@ public class ExecutableFileInterpreter {
         primitiveRegistry.unimplemented("caml_round_float");
         primitiveRegistry.unimplemented("caml_runtime_parameters");
         primitiveRegistry.unimplemented("caml_runtime_variant");
-        primitiveRegistry.unimplemented("caml_set_oo_id");
+        primitiveRegistry.addFunc1("caml_set_oo_id", ooIdGenerator::setOOId);
         primitiveRegistry.unimplemented("caml_set_parser_trace");
         primitiveRegistry.unimplemented("caml_setup_afl");
         primitiveRegistry.unimplemented("caml_signbit");
@@ -397,7 +398,7 @@ public class ExecutableFileInterpreter {
         primitiveRegistry.unimplemented("caml_static_free");
         primitiveRegistry.unimplemented("caml_static_release_bytecode");
         primitiveRegistry.unimplemented("caml_static_resize");
-        primitiveRegistry.unimplemented("caml_string_compare");
+        primitiveRegistry.addFunc2("caml_string_compare", StringValue::compare);
         primitiveRegistry.unimplemented("caml_string_equal");
         primitiveRegistry.addFunc2("caml_string_get", StringValue::getByteValue);
         primitiveRegistry.unimplemented("caml_string_get16");
@@ -407,7 +408,7 @@ public class ExecutableFileInterpreter {
         primitiveRegistry.unimplemented("caml_string_greaterthan");
         primitiveRegistry.unimplemented("caml_string_lessequal");
         primitiveRegistry.unimplemented("caml_string_lessthan");
-        primitiveRegistry.unimplemented("caml_string_notequal");
+        primitiveRegistry.addFunc2("caml_string_notequal", StringValue::notEqual);
         primitiveRegistry.addFunc1("caml_string_of_bytes", Value::identity);
         primitiveRegistry.unimplemented("caml_string_set");
         primitiveRegistry.unimplemented("caml_sub_float");
@@ -465,7 +466,7 @@ public class ExecutableFileInterpreter {
         FileChannel fc = FileChannel.open(path);
         Executable e = exb.fromExe(fc);
         Primitives primitives = primitiveRegistry.getPrimitives(e.getPrims());
-        Interpreter interpreter = new Interpreter(e.getGlobalData(), primitives, camlState);
+        Interpreter interpreter = new Interpreter(e.getGlobalData(), primitives, camlState, e.getDebugEvents());
 //            HexPrinter.printBytes(e.getCodeFragment().code);
 
         interpreter.interpret(e.getCodeFragment().code);
