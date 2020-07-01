@@ -12,6 +12,7 @@ public class ValueStack {
     final List<Value> stack = new ArrayList<>();
 
     public void push(Value value) {
+        assert value != null;
         stack.add(value);
     }
 

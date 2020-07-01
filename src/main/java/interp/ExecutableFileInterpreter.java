@@ -2,6 +2,7 @@ package interp;
 
 import com.google.common.primitives.Ints;
 import interp.customoperations.CustomOperationsList;
+import interp.ints.Int64CustomOperations;
 import interp.ints.NativeIntCustomOperations;
 import interp.io.ChannelRegistry;
 import interp.primitives.*;
@@ -10,6 +11,8 @@ import interp.value.*;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
+
+import static interp.Interpreter.valTrue;
 
 public class ExecutableFileInterpreter {
     private final ExecutableBuilder exb;
@@ -21,7 +24,7 @@ public class ExecutableFileInterpreter {
     }
 
     public ExecutableFileInterpreter(ChannelRegistry channelRegistry) throws IOException {
-
+        final Sys sys = new Sys("exec", new String[0]);
         OOIdGenerator ooIdGenerator = new OOIdGenerator();
         CustomOperationsList customOperationsList = new CustomOperationsList();
         CodeFragmentTable codeFragmentTable = new CodeFragmentTable();
@@ -94,7 +97,13 @@ public class ExecutableFileInterpreter {
         primitiveRegistry.unimplemented("caml_ba_uint8_set32");
         primitiveRegistry.unimplemented("caml_ba_uint8_set64");
         primitiveRegistry.unimplemented("caml_backtrace_status");
-        primitiveRegistry.unimplemented("caml_blit_bytes");
+        primitiveRegistry.addFuncN("caml_blit_bytes", (Value[] values) -> StringValue.blit(
+                (StringValue) values[0],
+                (LongValue) values[1],
+                (StringValue) values[2],
+                (LongValue) values[3],
+                (LongValue) values[4]
+        ));
         primitiveRegistry.addFuncN("caml_blit_string",
                 (Value[] values) -> StringValue.blit(
                         (StringValue) values[0],
@@ -137,7 +146,7 @@ public class ExecutableFileInterpreter {
         primitiveRegistry.unimplemented("caml_dynlink_get_current_libs");
         primitiveRegistry.unimplemented("caml_dynlink_lookup_symbol");
         primitiveRegistry.unimplemented("caml_dynlink_open_lib");
-        primitiveRegistry.unimplemented("caml_ensure_stack_capacity");
+        primitiveRegistry.addFunc1("caml_ensure_stack_capacity", (Value value) -> valTrue);
         primitiveRegistry.unimplemented("caml_ephe_blit_data");
         primitiveRegistry.unimplemented("caml_ephe_blit_key");
         primitiveRegistry.unimplemented("caml_ephe_check_data");
@@ -157,13 +166,18 @@ public class ExecutableFileInterpreter {
         primitiveRegistry.unimplemented("caml_eventlog_resume");
         primitiveRegistry.unimplemented("caml_exp_float");
         primitiveRegistry.unimplemented("caml_expm1_float");
-        primitiveRegistry.unimplemented("caml_fill_bytes");
+        primitiveRegistry.addFuncN("caml_fill_bytes", (Value[] values) -> StringValue.fillBytes(
+                (StringValue) values[0],
+                (LongValue) values[1],
+                (LongValue) values[2],
+                (LongValue) values[3]
+        ));
         primitiveRegistry.unimplemented("caml_fill_string");
         primitiveRegistry.unimplemented("caml_final_register");
         primitiveRegistry.unimplemented("caml_final_register_called_without_value");
         primitiveRegistry.unimplemented("caml_final_release");
         primitiveRegistry.unimplemented("caml_float_compare");
-        primitiveRegistry.unimplemented("caml_float_of_int");
+        primitiveRegistry.addFunc1("caml_float_of_int", DoubleValue::ofLongValue);
         primitiveRegistry.unimplemented("caml_float_of_string");
         primitiveRegistry.unimplemented("caml_floatarray_create");
         primitiveRegistry.addFunc2("caml_floatarray_get", BaseArrayValue::unsafeGet);
@@ -234,34 +248,34 @@ public class ExecutableFileInterpreter {
         primitiveRegistry.unimplemented("caml_int32_to_float");
         primitiveRegistry.unimplemented("caml_int32_to_int");
         primitiveRegistry.unimplemented("caml_int32_xor");
-        primitiveRegistry.unimplemented("caml_int64_add");
+        primitiveRegistry.addFunc2("caml_int64_add", Int64CustomOperations::add);
         primitiveRegistry.unimplemented("caml_int64_add_native");
         primitiveRegistry.unimplemented("caml_int64_and");
         primitiveRegistry.unimplemented("caml_int64_and_native");
         primitiveRegistry.unimplemented("caml_int64_bits_of_float");
         primitiveRegistry.unimplemented("caml_int64_bswap");
-        primitiveRegistry.unimplemented("caml_int64_compare");
-        primitiveRegistry.unimplemented("caml_int64_div");
+        primitiveRegistry.addFunc2("caml_int64_compare", Int64CustomOperations::compare);
+        primitiveRegistry.addFunc2("caml_int64_div", Int64CustomOperations::div);
         primitiveRegistry.unimplemented("caml_int64_div_native");
         primitiveRegistry.addPrimitive(new Int64FloatOfBitsPrimitive());
-        primitiveRegistry.unimplemented("caml_int64_format");
-        primitiveRegistry.unimplemented("caml_int64_mod");
+        primitiveRegistry.addFunc2("caml_int64_format", Int64CustomOperations::format);
+        primitiveRegistry.addFunc2("caml_int64_mod", Int64CustomOperations::mod);
         primitiveRegistry.unimplemented("caml_int64_mod_native");
         primitiveRegistry.unimplemented("caml_int64_mul");
         primitiveRegistry.unimplemented("caml_int64_mul_native");
-        primitiveRegistry.unimplemented("caml_int64_neg");
+        primitiveRegistry.addFunc1("caml_int64_neg", Int64CustomOperations::neg);
         primitiveRegistry.unimplemented("caml_int64_neg_native");
-        primitiveRegistry.unimplemented("caml_int64_of_float");
-        primitiveRegistry.addFunc1("caml_int64_of_int", Value::identity);
-        primitiveRegistry.unimplemented("caml_int64_of_int32");
+        primitiveRegistry.addFunc1("caml_int64_of_float", Int64CustomOperations::ofFloat);
+        primitiveRegistry.addFunc1("caml_int64_of_int", Int64CustomOperations::ofInt);
+        primitiveRegistry.addFunc1("caml_int64_of_int32", Int64CustomOperations::ofInt);
         primitiveRegistry.unimplemented("caml_int64_of_nativeint");
-        primitiveRegistry.unimplemented("caml_int64_of_string");
-        primitiveRegistry.unimplemented("caml_int64_or");
+        primitiveRegistry.addFunc1("caml_int64_of_string", Int64CustomOperations::ofString);
+        primitiveRegistry.addFunc2("caml_int64_or", Int64CustomOperations::or);
         primitiveRegistry.unimplemented("caml_int64_or_native");
-        primitiveRegistry.unimplemented("caml_int64_shift_left");
-        primitiveRegistry.unimplemented("caml_int64_shift_right");
-        primitiveRegistry.unimplemented("caml_int64_shift_right_unsigned");
-        primitiveRegistry.unimplemented("caml_int64_sub");
+        primitiveRegistry.addFunc2("caml_int64_shift_left", Int64CustomOperations::shift_left);
+        primitiveRegistry.addFunc2("caml_int64_shift_right", Int64CustomOperations::shift_right);
+        primitiveRegistry.addFunc2("caml_int64_shift_right_unsigned", Int64CustomOperations::shift_right_unsigned);
+        primitiveRegistry.addFunc2("caml_int64_sub", Int64CustomOperations::sub);
         primitiveRegistry.unimplemented("caml_int64_sub_native");
         primitiveRegistry.unimplemented("caml_int64_to_float");
         primitiveRegistry.unimplemented("caml_int64_to_int");
@@ -271,15 +285,15 @@ public class ExecutableFileInterpreter {
         primitiveRegistry.unimplemented("caml_int64_xor_native");
         primitiveRegistry.unimplemented("caml_int_as_pointer");
         primitiveRegistry.addFunc2("caml_int_compare", LongValue::compare);
-        primitiveRegistry.unimplemented("caml_int_of_float");
+        primitiveRegistry.addFunc1("caml_int_of_float", LongValue::ofDoubleValue);
         primitiveRegistry.addFunc1("caml_int_of_string", LongValue::parseString);
         primitiveRegistry.unimplemented("caml_invoke_traced_function");
         primitiveRegistry.unimplemented("caml_lazy_follow_forward");
         primitiveRegistry.unimplemented("caml_lazy_make_forward");
         primitiveRegistry.unimplemented("caml_ldexp_float");
         primitiveRegistry.unimplemented("caml_le_float");
-        primitiveRegistry.unimplemented("caml_lessequal");
-        primitiveRegistry.unimplemented("caml_lessthan");
+        primitiveRegistry.addFunc2("caml_lessequal", compare::lessEqual);
+        primitiveRegistry.addFunc2("caml_lessthan", compare::lessThan);
         primitiveRegistry.unimplemented("caml_lex_engine");
         primitiveRegistry.unimplemented("caml_log10_float");
         primitiveRegistry.unimplemented("caml_log1p_float");
@@ -293,7 +307,7 @@ public class ExecutableFileInterpreter {
         primitiveRegistry.unimplemented("caml_md5_string");
         primitiveRegistry.unimplemented("caml_memprof_start");
         primitiveRegistry.unimplemented("caml_memprof_stop");
-        primitiveRegistry.unimplemented("caml_ml_bytes_length");
+        primitiveRegistry.addFunc1("caml_ml_bytes_length", StringValue::stringLength);
         primitiveRegistry.unimplemented("caml_ml_channel_size");
         primitiveRegistry.unimplemented("caml_ml_channel_size_64");
         primitiveRegistry.unimplemented("caml_ml_close_channel");
@@ -399,7 +413,7 @@ public class ExecutableFileInterpreter {
         primitiveRegistry.unimplemented("caml_static_release_bytecode");
         primitiveRegistry.unimplemented("caml_static_resize");
         primitiveRegistry.addFunc2("caml_string_compare", StringValue::compare);
-        primitiveRegistry.unimplemented("caml_string_equal");
+        primitiveRegistry.addFunc2("caml_string_equal", StringValue::equal);
         primitiveRegistry.addFunc2("caml_string_get", StringValue::getByteValue);
         primitiveRegistry.unimplemented("caml_string_get16");
         primitiveRegistry.unimplemented("caml_string_get32");
@@ -412,25 +426,25 @@ public class ExecutableFileInterpreter {
         primitiveRegistry.addFunc1("caml_string_of_bytes", Value::identity);
         primitiveRegistry.unimplemented("caml_string_set");
         primitiveRegistry.unimplemented("caml_sub_float");
-        primitiveRegistry.unimplemented("caml_sys_argv");
-        primitiveRegistry.unimplemented("caml_sys_chdir");
+        primitiveRegistry.addFunc1("caml_sys_argv", sys::argv);
+        primitiveRegistry.addFunc1("caml_sys_chdir", sys::chDir);
         primitiveRegistry.unimplemented("caml_sys_close");
         primitiveRegistry.addPrimitive(new SysConstBackendType());
         primitiveRegistry.addPrimitive(new SysConstBigEndian());
-        primitiveRegistry.addFunc0("caml_sys_const_int_size", Sys::constIntSize);;
-        primitiveRegistry.addFunc0("caml_sys_const_max_wosize", Sys::constOsMaxWoSize);
-        primitiveRegistry.addFunc0("caml_sys_const_ostype_cygwin", Sys::constOsTypeCygwin);
-        primitiveRegistry.addFunc0("caml_sys_const_ostype_unix", Sys::constOsTypeUnix);
-        primitiveRegistry.addFunc0("caml_sys_const_ostype_win32", Sys::constOsTypeWin32);
-        primitiveRegistry.addFunc0("caml_sys_const_word_size", Sys::sysConstWordSize);
+        primitiveRegistry.addFunc0("caml_sys_const_int_size", sys::constIntSize);;
+        primitiveRegistry.addFunc0("caml_sys_const_max_wosize", sys::constOsMaxWoSize);
+        primitiveRegistry.addFunc0("caml_sys_const_ostype_cygwin", sys::constOsTypeCygwin);
+        primitiveRegistry.addFunc0("caml_sys_const_ostype_unix", sys::constOsTypeUnix);
+        primitiveRegistry.addFunc0("caml_sys_const_ostype_win32", sys::constOsTypeWin32);
+        primitiveRegistry.addFunc0("caml_sys_const_word_size", sys::sysConstWordSize);
         primitiveRegistry.addPrimitive(new SysExecutableName());
         primitiveRegistry.unimplemented("caml_sys_exit");
         primitiveRegistry.unimplemented("caml_sys_file_exists");
         primitiveRegistry.unimplemented("caml_sys_get_argv");
         primitiveRegistry.addPrimitive(new SysGetConfig());
-        primitiveRegistry.unimplemented("caml_sys_getcwd");
-        primitiveRegistry.unimplemented("caml_sys_getenv");
-        primitiveRegistry.unimplemented("caml_sys_is_directory");
+        primitiveRegistry.addFunc1("caml_sys_getcwd", sys::getCwd);
+        primitiveRegistry.addFunc1("caml_sys_getenv", sys::getEnv);
+        primitiveRegistry.addFunc1("caml_sys_is_directory", sys::isDirectory);
         primitiveRegistry.unimplemented("caml_sys_isatty");
         primitiveRegistry.unimplemented("caml_sys_modify_argv");
         primitiveRegistry.unimplemented("caml_sys_open");

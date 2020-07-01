@@ -14,6 +14,12 @@ public class OcamlInterpreterException extends RuntimeException {
         tagIndex = -1;
     }
 
+    public OcamlInterpreterException(int tagIndex){
+        this.tag = null;
+        this.value = null;
+        this.tagIndex = tagIndex;
+    }
+
     public OcamlInterpreterException(int tagIndex, Value value){
         this.tag = null;
         this.value = value;
@@ -24,6 +30,9 @@ public class OcamlInterpreterException extends RuntimeException {
         Value tagValue = tag;
         if (tagValue == null) {
             tagValue = globalData.getField(tagIndex);
+        }
+        if (value == null) {
+            return tagValue;
         }
         ObjectValue bucket = new ObjectValue(ValueTag.PAIR_TAG, 2);
         bucket.setField(0, tagValue);

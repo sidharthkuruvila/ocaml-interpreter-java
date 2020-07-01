@@ -6,6 +6,9 @@ import interp.stack.StackPointer;
 import interp.stack.ValueStack;
 import interp.value.*;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -112,6 +115,8 @@ public class Interpreter {
     public Value interpret(Code code) {
         List<Instructions> instructionTrace = new ArrayList<>();
         ValueStack stack = new ValueStack();
+        stack.push(valUnit);
+        camlState.setTrapSp(stack.pointer());
         Value accu = null;
         int extraArgs = 0;
 
@@ -121,1056 +126,663 @@ public class Interpreter {
 
         Value env = new Atom(ValueTag.PAIR_TAG);
 
-        while (true) {
-            boolean raiseNoTrace = false;
-            try {
-                Instructions currInstr = instructions[pc.get()];
+        try (PrintWriter pw = new PrintWriter(new FileWriter("java_out.txt"))) {
 
-                pc = pc.inc();
-//                System.out.println(currInstr + ", " + pc.index);
-                instructionTrace.add(currInstr);
-                switch (currInstr) {
-                    case ACC0:
-                        accu = stack.get(0);
-                        continue;
-                    case ACC1:
-                        accu = stack.get(1);
-                        continue;
-                    case ACC2:
-                        accu = stack.get(2);
-                        continue;
-                    case ACC3:
-                        accu = stack.get(3);
-                        continue;
-                    case ACC4:
-                        accu = stack.get(4);
-                        continue;
-                    case ACC5:
-                        accu = stack.get(5);
-                        continue;
-                    case ACC6:
-                        accu = stack.get(6);
-                        continue;
-                    case ACC7:
-                        accu = stack.get(7);
-                        continue;
-                    case PUSH:
-                    case PUSHACC0:
-                        stack.push(accu);
-                        continue;
-                    case PUSHACC1:
-                        stack.push(accu);
-                        accu = stack.get(1);
-                        continue;
-                    case PUSHACC2:
-                        stack.push(accu);
-                        accu = stack.get(2);
-                        continue;
-                    case PUSHACC3:
-                        stack.push(accu);
-                        accu = stack.get(3);
-                        continue;
-                    case PUSHACC4:
-                        stack.push(accu);
-                        accu = stack.get(4);
-                        continue;
-                    case PUSHACC5:
-                        stack.push(accu);
-                        accu = stack.get(5);
-                        continue;
-                    case PUSHACC6:
-                        stack.push(accu);
-                        accu = stack.get(6);
-                        continue;
-                    case PUSHACC7:
-                        stack.push(accu);
-                        accu = stack.get(7);
-                        continue;
-                    case PUSHACC:
-                        stack.push(accu);
-                        /* Fallthrough */
-                    case ACC:
-                        accu = stack.get(pc.get());
-                        pc = pc.inc();
-                        continue;
-                    case POP:
-                        stack.popNIgnore(pc.get());
-                        pc = pc.inc();
-                        continue;
-                    case ASSIGN:
-                        stack.set(pc.get(), accu);
-                        pc = pc.inc();
-                        accu = valUnit;
-                        continue;
-                        /* Access in heap-allocated environment */
-                    case ENVACC1:
-                        accu = getField(env, 1);
-                        continue;
-                    case ENVACC2:
-                        accu = getField(env, 2);
-                        continue;
-                    case ENVACC3:
-                        accu = getField(env, 3);
-                        continue;
-                    case ENVACC4:
-                        accu = getField(env, 4);
-                        continue;
-                    case PUSHENVACC1:
-                        stack.push(accu);
-                        accu = getField(env, 1);
-                        continue;
-                    case PUSHENVACC2:
-                        stack.push(accu);
-                        accu = getField(env, 2);
-                        continue;
-                    case PUSHENVACC3:
-                        stack.push(accu);
-                        accu = getField(env, 3);
-                        continue;
-                    case PUSHENVACC4:
-                        stack.push(accu);
-                        accu = getField(env, 4);
-                        continue;
-                    case PUSHENVACC:
-                        stack.push(accu);
-                    case ENVACC:
-                        accu = getField(env, pc.get());
-                        pc = pc.inc();
-                        continue;
-                        /* Function application */
-                    case PUSH_RETADDR:
-                        stack.push(new LongValue(extraArgs));
-                        stack.push(env);
-                        stack.push(pc.incN(pc.get()));
-                        pc = pc.inc();
-                        continue;
-                    case APPLY: {
-                        extraArgs = pc.get() - 1;
-                        pc = (CodePointer) ((ObjectValue) accu).getField(0);
-                        env = accu;
-                        continue;
+            while (true) {
+                boolean raiseNoTrace = false;
+                try {
+                    Instructions currInstr = instructions[pc.get()];
+
+                    pc = pc.inc();
+                    pw.println(currInstr + ", " + pc.index);
+                    if(pc.index == 34962) {
+                        System.out.println("indexed");
                     }
-                    case APPLY1: {
-                        Value arg1 = stack.pop();
-                        stack.push(new LongValue(extraArgs));
-                        stack.push(env);
-                        stack.push(pc);
-                        stack.push(arg1);
-                        pc = (CodePointer) ((ObjectValue) accu).getField(0);
-                        env = accu; //What's happening here? why is the env the programme counter?
-                        extraArgs = 0;
-                        checkStacks();
-                        continue;
-                    }
-                    case APPLY2: {
-                        Value arg1 = stack.pop();
-                        Value arg2 = stack.pop();
-                        stack.push(new LongValue(extraArgs));
-                        stack.push(env);
-                        stack.push(pc);
-                        stack.push(arg2);
-                        stack.push(arg1);
-                        pc = (CodePointer) ((ObjectValue) accu).getField(0);
-                        env = accu; //What's happening here? why is the env the programme counter?
-                        extraArgs = 1;
-                        checkStacks();
-                        continue;
-                    }
-                    case APPLY3: {
-                        Value arg1 = stack.pop();
-                        Value arg2 = stack.pop();
-                        Value arg3 = stack.pop();
-                        stack.push(new LongValue(extraArgs));
-                        stack.push(env);
-                        stack.push(pc);
-                        stack.push(arg3);
-                        stack.push(arg2);
-                        stack.push(arg1);
+//                    instructionTrace.add(currInstr);
+                    switch (currInstr) {
+                        case ACC0:
+                            accu = stack.get(0);
+                            continue;
+                        case ACC1:
+                            accu = stack.get(1);
+                            continue;
+                        case ACC2:
+                            accu = stack.get(2);
+                            continue;
+                        case ACC3:
+                            accu = stack.get(3);
+                            continue;
+                        case ACC4:
+                            accu = stack.get(4);
+                            continue;
+                        case ACC5:
+                            accu = stack.get(5);
+                            continue;
+                        case ACC6:
+                            accu = stack.get(6);
+                            continue;
+                        case ACC7:
+                            accu = stack.get(7);
+                            continue;
+                        case PUSH:
+                        case PUSHACC0:
+                            stack.push(accu);
+                            continue;
+                        case PUSHACC1:
+                            stack.push(accu);
+                            accu = stack.get(1);
+                            continue;
+                        case PUSHACC2:
+                            stack.push(accu);
+                            accu = stack.get(2);
+                            continue;
+                        case PUSHACC3:
+                            stack.push(accu);
+                            accu = stack.get(3);
+                            continue;
+                        case PUSHACC4:
+                            stack.push(accu);
+                            accu = stack.get(4);
+                            continue;
+                        case PUSHACC5:
+                            stack.push(accu);
+                            accu = stack.get(5);
+                            continue;
+                        case PUSHACC6:
+                            stack.push(accu);
+                            accu = stack.get(6);
+                            continue;
+                        case PUSHACC7:
+                            stack.push(accu);
+                            accu = stack.get(7);
+                            continue;
+                        case PUSHACC:
+                            stack.push(accu);
+                            /* Fallthrough */
+                        case ACC:
+                            accu = stack.get(pc.get());
+                            pc = pc.inc();
+                            continue;
+                        case POP:
+                            stack.popNIgnore(pc.get());
+                            pc = pc.inc();
+                            continue;
+                        case ASSIGN:
+                            stack.set(pc.get(), accu);
+                            pc = pc.inc();
+                            accu = valUnit;
+                            continue;
+                            /* Access in heap-allocated environment */
+                        case ENVACC1:
+                            accu = getField(env, 1);
+                            continue;
+                        case ENVACC2:
+                            accu = getField(env, 2);
+                            continue;
+                        case ENVACC3:
+                            accu = getField(env, 3);
+                            continue;
+                        case ENVACC4:
+                            accu = getField(env, 4);
+                            continue;
+                        case PUSHENVACC1:
+                            stack.push(accu);
+                            accu = getField(env, 1);
+                            continue;
+                        case PUSHENVACC2:
+                            stack.push(accu);
+                            accu = getField(env, 2);
+                            continue;
+                        case PUSHENVACC3:
+                            stack.push(accu);
+                            accu = getField(env, 3);
+                            continue;
+                        case PUSHENVACC4:
+                            stack.push(accu);
+                            accu = getField(env, 4);
+                            continue;
+                        case PUSHENVACC:
+                            stack.push(accu);
+                        case ENVACC:
+                            accu = getField(env, pc.get());
+                            pc = pc.inc();
+                            continue;
+                            /* Function application */
+                        case PUSH_RETADDR:
+                            stack.push(new LongValue(extraArgs));
+                            stack.push(env);
+                            stack.push(pc.incN(pc.get()));
+                            pc = pc.inc();
+                            continue;
+                        case APPLY: {
+                            extraArgs = pc.get() - 1;
+                            pc = getCodePonter((CodePointer) ((ObjectValue) accu).getField(0));
+                            env = accu;
+                            continue;
+                        }
+                        case APPLY1: {
+                            Value arg1 = stack.pop();
+                            stack.push(new LongValue(extraArgs));
+                            stack.push(env);
+                            stack.push(pc);
+                            stack.push(arg1);
+                            pc = getCodePonter((CodePointer) ((ObjectValue) accu).getField(0));
+                            env = accu; //What's happening here? why is the env the programme counter?
+                            extraArgs = 0;
+                            checkStacks();
+                            continue;
+                        }
+                        case APPLY2: {
+                            Value arg1 = stack.pop();
+                            Value arg2 = stack.pop();
+                            stack.push(new LongValue(extraArgs));
+                            stack.push(env);
+                            stack.push(pc);
+                            stack.push(arg2);
+                            stack.push(arg1);
+                            pc = getCodePonter((CodePointer) ((ObjectValue) accu).getField(0));
+                            env = accu; //What's happening here? why is the env the programme counter?
+                            extraArgs = 1;
+                            checkStacks();
+                            continue;
+                        }
+                        case APPLY3: {
+                            Value arg1 = stack.pop();
+                            Value arg2 = stack.pop();
+                            Value arg3 = stack.pop();
+                            stack.push(new LongValue(extraArgs));
+                            stack.push(env);
+                            stack.push(pc);
+                            stack.push(arg3);
+                            stack.push(arg2);
+                            stack.push(arg1);
 
 
-                        pc = (CodePointer) ((ObjectValue) accu).getField(0);
-                        env = accu; //What's happening here? why is the env the programme counter?
-                        extraArgs = 2;
-                        checkStacks();
-                        continue;
-                    }
+                            pc = getCodePonter((CodePointer) ((ObjectValue) accu).getField(0));
+                            env = accu; //What's happening here? why is the env the programme counter?
+                            extraArgs = 2;
+                            checkStacks();
+                            continue;
+                        }
 
-                    case APPTERM: {
-                        int nargs = pc.get();
-                        pc = pc.inc();
-                        int slotSize = pc.get();
-                        List<Value> args = new ArrayList<>();
+                        case APPTERM: {
+                            int nargs = pc.get();
+                            pc = pc.inc();
+                            int slotSize = pc.get();
+                            List<Value> args = new ArrayList<>();
                     /* Slide the nargs bottom words of the current frame to the top
          of the frame, and discard the remainder of the frame */
-                        for (int i = nargs - 1; i >= 0; i--) {
-                            args.add(stack.get(i));
-                        }
-                        stack.popNIgnore(slotSize);
-                        for (Value arg : args) {
-                            stack.push(arg);
-                        }
-                        pc = (CodePointer) ((ObjectValue) accu).getField(0);
-                        env = accu;
-                        extraArgs += nargs - 1;
-                        checkStacks();
-                        continue;
-                    }
-                    case APPTERM1: {
-                        Value arg1 = stack.get(0);
-                        stack.popNIgnore(pc.get());
-                        stack.push(arg1);
-                        pc = (CodePointer) ((ObjectValue) accu).getField(0);
-                        env = accu;
-                        checkStacks();
-                        continue;
-                    }
-                    case APPTERM2: {
-                        Value arg1 = stack.get(0);
-                        Value arg2 = stack.get(1);
-                        stack.popNIgnore(pc.get());
-                        stack.push(arg2);
-                        stack.push(arg1);
-                        pc = (CodePointer) ((ObjectValue) accu).getField(0);
-                        env = accu;
-                        extraArgs += 1;
-                        checkStacks();
-                        continue;
-                    }
-                    case APPTERM3: {
-                        Value arg1 = stack.get(0);
-                        Value arg2 = stack.get(1);
-                        Value arg3 = stack.get(2);
-                        stack.popNIgnore(pc.get());
-                        stack.push(arg3);
-                        stack.push(arg2);
-                        stack.push(arg1);
-                        pc = (CodePointer) ((ObjectValue) accu).getField(0);
-                        env = accu;
-                        extraArgs += 2;
-                        checkStacks();
-                        continue;
-                    }
-
-                    case RETURN: {
-                        stack.popNIgnore(pc.get());
-                        if (extraArgs > 0) {
-                            extraArgs -= 1;
-                            pc = (CodePointer) accu;
-                            env = accu;
-                        } else {
-                            pc = (CodePointer) stack.get(0);
-                            env = stack.get(1);
-                            extraArgs = (int) ((LongValue) stack.get(2)).getValue();
-                            stack.popNIgnore(3);
-                        }
-                        continue;
-                    }
-
-                    case RESTART: {
-                        ObjectValue obj = (ObjectValue) env;
-                        int numArgs = obj.getSize() - 3;
-                        for (int i = 0; i < numArgs; i++) {
-                            stack.push(getField(env, obj.getSize() - i - 1));
-                        }
-                        env = getField(env, 2);
-                        extraArgs += numArgs;
-                        continue;
-                    }
-
-                    case GRAB: {
-                        int required = pc.get();
-                        pc = pc.inc();
-                        if (extraArgs >= required) {
-                            extraArgs -= required;
-                        } else {
-                            int numArgs = 1 + extraArgs;
-                            ObjectValue o = new ObjectValue(ValueTag.Closure_tag, numArgs + 3);
-                            accu = o;
-                            o.setField(2, env);
-                            for (int i = 0; i < numArgs; i++) {
-                                o.setField(i + 3, stack.get(i));
+                            for (int i = nargs - 1; i >= 0; i--) {
+                                args.add(stack.get(i));
                             }
-                            o.setField(0, pc.incN(-3));
+                            stack.popNIgnore(slotSize);
+                            for (Value arg : args) {
+                                stack.push(arg);
+                            }
+                            pc = getCodePonter((CodePointer) ((ObjectValue) accu).getField(0));
+                            env = accu;
+                            extraArgs += nargs - 1;
+                            checkStacks();
+                            continue;
+                        }
+                        case APPTERM1: {
+                            Value arg1 = stack.get(0);
+                            stack.popNIgnore(pc.get());
+                            stack.push(arg1);
+                            pc = getCodePonter((CodePointer) ((ObjectValue) accu).getField(0));
+                            env = accu;
+                            checkStacks();
+                            continue;
+                        }
+                        case APPTERM2: {
+                            Value arg1 = stack.get(0);
+                            Value arg2 = stack.get(1);
+                            stack.popNIgnore(pc.get());
+                            stack.push(arg2);
+                            stack.push(arg1);
+                            pc = getCodePonter((CodePointer) ((ObjectValue) accu).getField(0));
+                            env = accu;
+                            extraArgs += 1;
+                            checkStacks();
+                            continue;
+                        }
+                        case APPTERM3: {
+                            Value arg1 = stack.get(0);
+                            Value arg2 = stack.get(1);
+                            Value arg3 = stack.get(2);
+                            stack.popNIgnore(pc.get());
+                            stack.push(arg3);
+                            stack.push(arg2);
+                            stack.push(arg1);
+                            pc = getCodePonter((CodePointer) ((ObjectValue) accu).getField(0));
+                            env = accu;
+                            extraArgs += 2;
+                            checkStacks();
+                            continue;
+                        }
+
+                        case RETURN: {
+                            stack.popNIgnore(pc.get());
+                            if (extraArgs > 0) {
+                                extraArgs -= 1;
+                                pc = getCodePonter(accu);
+                                env = accu;
+                            } else {
+                                pc = getCodePonter((CodePointer) stack.get(0));
+                                env = stack.get(1);
+                                extraArgs = (int) ((LongValue) stack.get(2)).getValue();
+                                stack.popNIgnore(3);
+                            }
+                            continue;
+                        }
+
+                        case RESTART: {
+                            ObjectValue obj = (ObjectValue) env;
+                            int numArgs = obj.getSize() - 3;
+                            for (int i = 0; i < numArgs; i++) {
+                                stack.push(getField(env, obj.getSize() - i - 1));
+                            }
+                            env = getField(env, 2);
+                            extraArgs += numArgs;
+                            continue;
+                        }
+
+                        case GRAB: {
+                            int required = pc.get();
+                            pc = pc.inc();
+                            if (extraArgs >= required) {
+                                extraArgs -= required;
+                            } else {
+                                int numArgs = 1 + extraArgs;
+                                ObjectValue o = new ObjectValue(ValueTag.Closure_tag, numArgs + 3);
+                                accu = o;
+                                o.setField(2, env);
+                                for (int i = 0; i < numArgs; i++) {
+                                    o.setField(i + 3, stack.get(i));
+                                }
+                                o.setField(0, pc.incN(-3));
+                                o.setField(1, new ClosInfoValue(0, 2));
+                                stack.popNIgnore(numArgs);
+                                pc = getCodePonter((CodePointer) stack.get(0));
+                                env = stack.get(1);
+                                extraArgs = (int) ((LongValue) stack.get(2)).getValue();
+                                stack.popNIgnore(3);
+                            }
+                            continue;
+                        }
+
+                        case CLOSURE: {
+                            int nVars = pc.get();
+                            pc = pc.inc();
+
+                            if (nVars > 0) {
+                                stack.push(accu);
+                            }
+
+                            ObjectValue o = new ObjectValue(ValueTag.Closure_tag, 2 + nVars);
+                            accu = o;
+                            for (int i = 0; i < nVars; i++) {
+                                o.setField(i + 2, stack.get(i));
+                            }
+
+                            o.setField(0, pc.incN(pc.get()));
                             o.setField(1, new ClosInfoValue(0, 2));
-                            stack.popNIgnore(numArgs);
-                            pc = (CodePointer) stack.get(0);
-                            env = stack.get(1);
-                            extraArgs = (int) ((LongValue) stack.get(2)).getValue();
-                            stack.popNIgnore(3);
+
+                            pc = pc.inc();
+                            stack.popNIgnore(nVars);
+                            continue;
                         }
-                        continue;
-                    }
 
-                    case CLOSURE: {
-                        int nVars = pc.get();
-                        pc = pc.inc();
-
-                        if (nVars > 0) {
+                        case CLOSUREREC: {
+                            int nFuncs = pc.get();
+                            pc = pc.inc();
+                            int nVars = pc.get();
+                            pc = pc.inc();
+                            int envOffset = nFuncs * 3 - 1;
+                            int blkSize = envOffset + nVars;
+                            if (nVars > 0) {
+                                stack.push(accu);
+                            }
+                            ObjectValue o = new ObjectValue(ValueTag.Closure_tag, blkSize);
+                            accu = o;
+                            for (int i = 0; i < nVars; i++) {
+                                o.setField(i + envOffset, stack.get(i));
+                            }
+                            stack.popNIgnore(nVars);
                             stack.push(accu);
+                            o.setField(0, pc.incN(pc.get()));
+                            o.setField(1, new ClosInfoValue(0, envOffset));
+                            for (int i = 1, j = 2; i < nFuncs; i++, j++) {
+                                o.setField(j, new InfixOffsetValue(i * 3));
+                                j += 1;
+                                stack.push(o.atFieldId(j));
+                                o.setField(j, pc.incN(pc.incN(i).get()));
+                                j += 1;
+                                envOffset -= 3;
+                                o.setField(j, new ClosInfoValue(0, envOffset));
+                            }
+                            pc = pc.incN(nFuncs);
+                            continue;
                         }
 
-                        ObjectValue o = new ObjectValue(ValueTag.Closure_tag, 2 + nVars);
-                        accu = o;
-                        for (int i = 0; i < nVars; i++) {
-                            o.setField(i + 2, stack.get(i));
-                        }
-
-                        o.setField(0, pc.incN(pc.get()));
-                        o.setField(1, new ClosInfoValue(0, 2));
-
-                        pc = pc.inc();
-                        stack.popNIgnore(nVars);
-                        continue;
-                    }
-
-                    case CLOSUREREC: {
-                        int nFuncs = pc.get();
-                        pc = pc.inc();
-                        int nVars = pc.get();
-                        pc = pc.inc();
-                        int envOffset = nFuncs * 3 - 1;
-                        int blkSize = envOffset + nVars;
-                        if (nVars > 0) {
+                        case PUSHOFFSETCLOSURE:
                             stack.push(accu);
+                        case OFFSETCLOSURE: {
+                            int offset = pc.get();
+                            pc = pc.inc();
+                            accu = ((ObjectValue) env).atFieldId(offset);
+                            continue;
                         }
-                        ObjectValue o = new ObjectValue(ValueTag.Closure_tag, blkSize);
-                        accu = o;
-                        for (int i = 0; i < nVars; i++) {
-                            o.setField(i + envOffset, stack.get(i));
+
+                        case PUSHOFFSETCLOSUREM2:
+                            stack.push(accu);
+                        case OFFSETCLOSUREM2: {
+                            accu = ((StackPointer) env).incN(2);
+                            continue;
                         }
-                        stack.popNIgnore(nVars);
-                        stack.push(accu);
-                        o.setField(0, pc.incN(pc.get()));
-                        o.setField(1, new ClosInfoValue(0, envOffset));
-                        for (int i = 1, j = 2; i < nFuncs; i++, j++) {
-                            o.setField(j, new InfixOffsetValue(i * 3));
-                            j += 1;
-                            stack.push(o.atFieldId(j));
-                            o.setField(j, pc.incN(pc.incN(i).get()));
-                            j += 1;
-                            envOffset -= 3;
-                            o.setField(j, new ClosInfoValue(0, envOffset));
+
+                        case PUSHOFFSETCLOSURE0:
+                            stack.push(accu);
+                        case OFFSETCLOSURE0:
+                            accu = env;
+                            continue;
+
+                        case PUSHOFFSETCLOSURE2:
+                            stack.push(accu);
+                        case OFFSETCLOSURE2:
+                            accu = ((StackPointer) env).incN(-2);
+                            continue;
+
+
+                            /* Access to global variables */
+
+
+                        case PUSHGETGLOBAL:
+                            stack.push(accu);
+                            /* Fallthrough */
+                        case GETGLOBAL:
+                            accu = globalData.getField(pc.get());
+                            pc = pc.inc();
+                            continue;
+
+                        case PUSHGETGLOBALFIELD:
+                            stack.push(accu);
+                            /* Fallthrough */
+                        case GETGLOBALFIELD: {
+                            accu = globalData.getField(pc.get());
+                            pc = pc.inc();
+                            accu = ((ObjectValue) accu).getField(pc.get());
+                            pc = pc.inc();
+                            continue;
                         }
-                        pc = pc.incN(nFuncs);
-                        continue;
-                    }
 
-                    case PUSHOFFSETCLOSURE:
-                        stack.push(accu);
-                    case OFFSETCLOSURE: {
-                        int offset = pc.get();
-                        pc = pc.inc();
-                        accu = ((StackPointer) env).incN(-1 * offset);
-                        pc = pc.inc();
-                        continue;
-                    }
+                        case SETGLOBAL:
+                            globalData.setField(pc.get(), accu);
+                            pc = pc.inc();
+                            accu = valUnit;
+                            continue;
 
-                    case PUSHOFFSETCLOSUREM2:
-                        stack.push(accu);
-                    case OFFSETCLOSUREM2: {
-                        accu = ((StackPointer) env).incN(2);
-                        continue;
-                    }
+                            /* Allocation of blocks */
 
-                    case PUSHOFFSETCLOSURE0:
-                        stack.push(accu);
-                    case OFFSETCLOSURE0:
-                        accu = env;
-                        continue;
+                        case PUSHATOM0:
+                            stack.push(accu);
+                            /* Fallthrough */
 
-                    case PUSHOFFSETCLOSURE2:
-                        stack.push(accu);
-                    case OFFSETCLOSURE2:
-                        accu = ((StackPointer) env).incN(-2);
-                        continue;
+                        case ATOM0:
+                            accu = new Atom(ValueTag.PAIR_TAG);
+                            continue;
 
+                        case PUSHATOM:
+                            stack.push(accu);
+                            /* Fallthrough */
+                        case ATOM:
+                            accu = new Atom(ValueTag.of(pc.get()));
+                            pc = pc.inc();
+                            continue;
 
-                        /* Access to global variables */
-
-
-                    case PUSHGETGLOBAL:
-                        stack.push(accu);
-                        /* Fallthrough */
-                    case GETGLOBAL:
-                        accu = globalData.getField(pc.get());
-                        pc = pc.inc();
-                        continue;
-
-                    case PUSHGETGLOBALFIELD:
-                        stack.push(accu);
-                        /* Fallthrough */
-                    case GETGLOBALFIELD: {
-                        accu = globalData.getField(pc.get());
-                        pc = pc.inc();
-                        accu = ((ObjectValue) accu).getField(pc.get());
-                        pc = pc.inc();
-                        continue;
-                    }
-
-                    case SETGLOBAL:
-                        globalData.setField(pc.get(), accu);
-                        pc = pc.inc();
-                        accu = valUnit;
-                        continue;
-
-                        /* Allocation of blocks */
-
-                    case PUSHATOM0:
-                        stack.push(accu);
-                        /* Fallthrough */
-
-                    case ATOM0:
-                        accu = new Atom(ValueTag.PAIR_TAG);
-                        continue;
-
-                    case PUSHATOM:
-                        stack.push(accu);
-                        /* Fallthrough */
-                    case ATOM:
-                        accu = new Atom(ValueTag.of(pc.get()));
-                        pc = pc.inc();
-                        continue;
-
-                    case MAKEBLOCK: {
-                        int woSize = pc.get();
-                        pc = pc.inc();
-                        ValueTag tag = ValueTag.of(pc.get());
-                        pc = pc.inc();
-                        ObjectValue o = new ObjectValue(tag, woSize);
-                        o.setField(0, accu);
-                        for (int i = 1; i < woSize; i++) {
-                            o.setField(i, stack.pop());
-                        }
+                        case MAKEBLOCK: {
+                            int woSize = pc.get();
+                            pc = pc.inc();
+                            int tag = ValueTag.of(pc.get());
+                            pc = pc.inc();
+                            ObjectValue o = new ObjectValue(tag, woSize);
+                            o.setField(0, accu);
+                            for (int i = 1; i < woSize; i++) {
+                                o.setField(i, stack.pop());
+                            }
 //                    stack.popNIgnore(woSize - 1);
-                        accu = o;
-                        continue;
-                    }
-
-                    case MAKEBLOCK1: {
-                        ValueTag tag = ValueTag.of(pc.get());
-                        pc = pc.inc();
-                        ObjectValue o = new ObjectValue(tag, 1);
-                        o.setField(0, accu);
-                        accu = o;
-                        continue;
-                    }
-                    case MAKEBLOCK2: {
-                        ValueTag tag = ValueTag.of(pc.get());
-                        pc = pc.inc();
-                        ObjectValue o = new ObjectValue(tag, 2);
-                        o.setField(0, accu);
-                        o.setField(1, stack.get(0));
-                        stack.popNIgnore(1);
-                        accu = o;
-                        continue;
-                    }
-
-                    case MAKEBLOCK3: {
-                        int tag = pc.get();
-                        pc = pc.inc();
-                        ObjectValue o = new ObjectValue(ValueTag.of(tag), 3);
-                        o.setField(0, accu);
-                        o.setField(1, stack.get(0));
-                        o.setField(2, stack.get(1));
-                        stack.popNIgnore(2);
-                        accu = o;
-                        continue;
-                    }
-
-                    case MAKEFLOATBLOCK: {
-                        int size = pc.get();
-                        pc = pc.inc();
-                        double[] arr = new double[size];
-                        arr[0] = ((DoubleValue) accu).getValue();
-                        for (int i = 1; i < size; i++) {
-                            arr[i] = ((DoubleValue) stack.pop()).getValue();
+                            accu = o;
+                            continue;
                         }
-                        accu = new DoubleArray(arr);
-                        continue;
-                    }
 
-                    /* Access to components of blocks */
+                        case MAKEBLOCK1: {
+                            int tag = ValueTag.of(pc.get());
+                            pc = pc.inc();
+                            ObjectValue o = new ObjectValue(tag, 1);
+                            o.setField(0, accu);
+                            accu = o;
+                            continue;
+                        }
+                        case MAKEBLOCK2: {
+                            int tag = ValueTag.of(pc.get());
+                            pc = pc.inc();
+                            ObjectValue o = new ObjectValue(tag, 2);
+                            o.setField(0, accu);
+                            o.setField(1, stack.get(0));
+                            stack.popNIgnore(1);
+                            accu = o;
+                            continue;
+                        }
 
-                    case GETFIELD0:
-                        accu = ((BaseArrayValue<?>) accu).getField(0);
-                        continue;
-                    case GETFIELD1:
-                        accu = ((ObjectValue) accu).getField(1);
-                        continue;
-                    case GETFIELD2:
-                        accu = ((ObjectValue) accu).getField(2);
-                        continue;
-                    case GETFIELD3:
-                        accu = ((ObjectValue) accu).getField(3);
-                        continue;
-                    case GETFIELD:
-                        accu = ((ObjectValue) accu).getField(pc.get());
-                        pc = pc.inc();
-                        continue;
+                        case MAKEBLOCK3: {
+                            int tag = pc.get();
+                            pc = pc.inc();
+                            ObjectValue o = new ObjectValue(ValueTag.of(tag), 3);
+                            o.setField(0, accu);
+                            o.setField(1, stack.get(0));
+                            o.setField(2, stack.get(1));
+                            stack.popNIgnore(2);
+                            accu = o;
+                            continue;
+                        }
 
-                    case GETFLOATFIELD: {
-                        double d = ((DoubleArray) accu).getDoubleField(pc.get());
-                        pc = pc.inc();
-                        accu = new DoubleValue(d);
-                        continue;
-                    }
+                        case MAKEFLOATBLOCK: {
+                            int size = pc.get();
+                            pc = pc.inc();
+                            double[] arr = new double[size];
+                            arr[0] = ((DoubleValue) accu).getValue();
+                            for (int i = 1; i < size; i++) {
+                                arr[i] = ((DoubleValue) stack.pop()).getValue();
+                            }
+                            accu = new DoubleArray(arr);
+                            continue;
+                        }
 
-                    case SETFIELD0:
-                        ((ObjectValue) accu).setField(0, stack.get(0));
-                        stack.popNIgnore(1);
-                        accu = valUnit;
-                        continue;
-                    case SETFIELD1:
-                        ((ObjectValue) accu).setField(1, stack.get(0));
-                        stack.popNIgnore(1);
-                        accu = valUnit;
-                        continue;
-                    case SETFIELD2:
-                        ((ObjectValue) accu).setField(2, stack.get(0));
-                        stack.popNIgnore(1);
-                        accu = valUnit;
-                        continue;
-                    case SETFIELD3:
-                        ((ObjectValue) accu).setField(3, stack.get(0));
-                        stack.popNIgnore(1);
-                        accu = valUnit;
-                        continue;
-                    case SETFIELD:
-                        ((ObjectValue) accu).setField(pc.get(), stack.get(0));
-                        stack.popNIgnore(1);
-                        pc = pc.inc();
-                        continue;
-                    case SETFLOATFIELD:
-                        ((DoubleArray) accu).setDoubleField(pc.get(), ((DoubleValue) stack.get(0)).getValue());
-                        pc = pc.inc();
-                        stack.popNIgnore(1);
-                        continue;
+                        /* Access to components of blocks */
 
-                        /* Array operations */
+                        case GETFIELD0:
+                            accu = ((BaseArrayValue<?>) accu).getField(0);
+                            continue;
+                        case GETFIELD1:
+                            accu = ((ObjectValue) accu).getField(1);
+                            continue;
+                        case GETFIELD2:
+                            accu = ((ObjectValue) accu).getField(2);
+                            continue;
+                        case GETFIELD3:
+                            accu = ((ObjectValue) accu).getField(3);
+                            continue;
+                        case GETFIELD:
+                            accu = ((ObjectValue) accu).getField(pc.get());
+                            pc = pc.inc();
+                            continue;
 
-                    case VECTLENGTH: {
+                        case GETFLOATFIELD: {
+                            double d = ((DoubleArray) accu).getDoubleField(pc.get());
+                            pc = pc.inc();
+                            accu = new DoubleValue(d);
+                            continue;
+                        }
+
+                        case SETFIELD0:
+                            ((ObjectValue) accu).setField(0, stack.get(0));
+                            stack.popNIgnore(1);
+                            accu = valUnit;
+                            continue;
+                        case SETFIELD1:
+                            ((ObjectValue) accu).setField(1, stack.get(0));
+                            stack.popNIgnore(1);
+                            accu = valUnit;
+                            continue;
+                        case SETFIELD2:
+                            ((ObjectValue) accu).setField(2, stack.get(0));
+                            stack.popNIgnore(1);
+                            accu = valUnit;
+                            continue;
+                        case SETFIELD3:
+                            ((ObjectValue) accu).setField(3, stack.get(0));
+                            stack.popNIgnore(1);
+                            accu = valUnit;
+                            continue;
+                        case SETFIELD:
+                            ((ObjectValue) accu).setField(pc.get(), stack.get(0));
+                            stack.popNIgnore(1);
+                            pc = pc.inc();
+                            continue;
+                        case SETFLOATFIELD:
+                            ((DoubleArray) accu).setDoubleField(pc.get(), ((DoubleValue) stack.get(0)).getValue());
+                            pc = pc.inc();
+                            stack.popNIgnore(1);
+                            continue;
+
+                            /* Array operations */
+
+                        case VECTLENGTH: {
       /* Todo: when FLAT_FLOAT_ARRAY is false, this instruction should
          be split into VECTLENGTH and FLOATVECTLENGTH because we know
          statically which one it is. */
-                        int size;
-                        if (accu instanceof Atom) {
-                            size = 0;
-                        } else if (accu instanceof ObjectValue) {
-                            size = ((ObjectValue) accu).getSize();
-                        } else {
-                            size = ((DoubleArray) accu).getSize();
+                            int size;
+                            if (accu instanceof Atom) {
+                                size = 0;
+                            } else if (accu instanceof ObjectValue) {
+                                size = ((ObjectValue) accu).getSize();
+                            } else {
+                                size = ((DoubleArray) accu).getSize();
+                            }
+                            accu = new LongValue(size);
+                            continue;
                         }
-                        accu = new LongValue(size);
-                        continue;
-                    }
-                    case GETVECTITEM:
-                        accu = ((ObjectValue) accu).getField((int) ((LongValue) stack.get(0)).getValue());
-                        stack.popNIgnore(1);
-                        continue;
-                    case SETVECTITEM:
-                        ((ObjectValue) accu).setField((int) ((LongValue) stack.get(0)).getValue(), stack.get(1));
-                        accu = valUnit;
-                        stack.popNIgnore(2);
-                        continue;
+                        case GETVECTITEM:
+                            accu = ((ObjectValue) accu).getField((int) ((LongValue) stack.get(0)).getValue());
+                            stack.popNIgnore(1);
+                            continue;
+                        case SETVECTITEM:
+                            ((ObjectValue) accu).setField((int) ((LongValue) stack.get(0)).getValue(), stack.get(1));
+                            accu = valUnit;
+                            stack.popNIgnore(2);
+                            continue;
 
-                        /* Bytes/String operations */
-                    case GETSTRINGCHAR:
-                    case GETBYTESCHAR:
-                        accu = new LongValue(((StringValue) accu).get((int) ((LongValue) stack.get(0)).getValue()));
-                        stack.popNIgnore(1);
-                        continue;
-                    case SETBYTESCHAR:
-                        ((StringValue) accu).set((int) ((LongValue) stack.get(0)).getValue(), (int) ((LongValue) stack.get(0)).getValue());
-                        stack.popNIgnore(2);
-                        accu = valUnit;
-                        continue;
+                            /* Bytes/String operations */
+                        case GETSTRINGCHAR:
+                        case GETBYTESCHAR:
+                            accu = new LongValue(((StringValue) accu).get((int) ((LongValue) stack.get(0)).getValue()));
+                            stack.popNIgnore(1);
+                            continue;
+                        case SETBYTESCHAR:
+                            ((StringValue) accu).set((int) ((LongValue) stack.get(0)).getValue(), (int) ((LongValue) stack.get(0)).getValue());
+                            stack.popNIgnore(2);
+                            accu = valUnit;
+                            continue;
 
-                        /* Branches and conditional branches */
+                            /* Branches and conditional branches */
 
-                    case BRANCH:
-                        pc = pc.incN(pc.get());
-                        continue;
-                    case BRANCHIF:
-                        if (!accu.equals(valFalse)) {
+                        case BRANCH:
                             pc = pc.incN(pc.get());
-                        } else {
+                            continue;
+                        case BRANCHIF:
+                            if (!accu.equals(valFalse)) {
+                                pc = pc.incN(pc.get());
+                            } else {
+                                pc = pc.inc();
+                            }
+                            continue;
+                        case BRANCHIFNOT:
+                            if (accu.equals(valFalse)) {
+                                pc = pc.incN(pc.get());
+                            } else {
+                                pc = pc.inc();
+                            }
+                            continue;
+                        case SWITCH: {
+                            int sizes = pc.get();
                             pc = pc.inc();
+                            if (accu instanceof ObjectValue) {
+                                int index = ((ObjectValue) accu).getTag();
+                                //        CAMLassert ((uintnat) index < (sizes >> 16));
+                                pc = pc.incN(pc.getN((sizes & 0xFFFF) + index));
+                            } else {
+                                int index = (int) ((LongValue) accu).getValue();
+                                pc = pc.incN(pc.getN(index));
+                            }
+                            continue;
                         }
-                        continue;
-                    case BRANCHIFNOT:
-                        if (accu.equals(valFalse)) {
-                            pc = pc.incN(pc.get());
-                        } else {
+                        case BOOLNOT:
+                            accu = valNot(accu);
+                            continue;
+
+                            /* Exceptions */
+                        case PUSHTRAP: {
+                            stack.push(new LongValue(extraArgs));
+                            stack.push(env);
+                            stack.push(camlState.getTrapSp());
+                            stack.push(pc.incN(pc.get()));
                             pc = pc.inc();
+                            camlState.setTrapSp(stack.pointer());
+                            continue;
                         }
-                        continue;
-                    case SWITCH: {
-                        int sizes = pc.get();
-                        pc = pc.inc();
-                        if (accu instanceof ObjectValue) {
-                            int index = ((ObjectValue) accu).getTag().getTag();
-                            //        CAMLassert ((uintnat) index < (sizes >> 16));
-                            pc = pc.incN(pc.getN((sizes & 0xFFFF) + index));
-                        } else {
-                            int index = (int) ((LongValue) accu).getValue();
-                            pc = pc.incN(pc.getN(index));
-                        }
-                        continue;
-                    }
-                    case BOOLNOT:
-                        accu = valNot(accu);
-                        continue;
 
-                        /* Exceptions */
-                    case PUSHTRAP: {
-                        stack.push(new LongValue(extraArgs));
-                        stack.push(env);
-                        stack.push(camlState.getTrapSp());
-                        stack.push(pc.incN(pc.get()));
-                        pc = pc.inc();
-                        camlState.setTrapSp(stack.pointer());
-                        continue;
-                    }
-
-                    case POPTRAP: {
-                        if (getSomethingToDo()) {
+                        case POPTRAP: {
+                            if (getSomethingToDo()) {
         /* We must check here so that if a signal is pending and its
            handler triggers an exception, the exception is trapped
            by the current try...with, not the enclosing one. */
-                            pc = pc.dec(); /* restart the POPTRAP after processing the signal */
-                            processActions();
-                        } else {
-                            camlState.setTrapSp((StackPointer) stack.get(1));
-                            stack.popNIgnore(4);
-                        }
-                        continue;
-                    }
-
-                    case RAISE_NOTRACE:
-                    case RERAISE:
-                    case RAISE: {
-                        switch (currInstr) {
-                            case RAISE_NOTRACE: {
-                                checkTrapBarrier();
-                                break;
-                            }
-
-                            case RERAISE: {
-                                checkTrapBarrier();
-                                if (camlState.getBackTraceActive()) {
-                                    stack.push(pc.dec());
-                                    stashBacktrace(accu, stack.pointer(), 1);
-                                }
-                                break;
-                            }
-
-                            case RAISE: {
-                                checkTrapBarrier();
-                                if (camlState.getBackTraceActive()) {
-                                    stack.push(pc.dec());
-                                    stashBacktrace(accu, stack.pointer(), 0);
-                                }
-                                break;
-                            }
-                        }
-                        StackPointer trapSp = camlState.getTrapSp();
-//        throw new RuntimeException("Not implemented yet");
-
-//        if ((char *) Caml_state->trapsp
-//          >= (char *) Caml_state->stack_high - initial_sp_offset) {
-//        Caml_state->external_raise = initial_external_raise;
-//        Caml_state->extern_sp = (value *) ((char *) Caml_state->stack_high
-//                                    - initial_sp_offset);
-//        caml_callback_depth--;
-//        return Make_exception_result(accu);
-//      }
-
-                        stack.reset(trapSp);
-                        pc = (CodePointer) stack.pop();
-                        camlState.setTrapSp((StackPointer) stack.pop());
-                        env = stack.pop();
-                        extraArgs = ((LongValue) stack.pop()).getIntValue();
-                        continue;
-                    }
-
-                    /* Signal handling */
-
-                    case CHECK_SIGNALS: {   /* accu not preserved */
-                        if (getSomethingToDo()) {
-                            processActions();
-                        }
-                        continue;
-                    }
-
-                    /* Calling C functions */
-
-                    case C_CALL1: {
-                        //Setup_for_c_call
-                        stack.push(pc);
-                        stack.push(env);
-                        camlState.setExternSp(stack.pointer());
-
-                        accu = primitives.get(pc.get()).call(new Value[]{accu});
-
-                        //Restore_after_c_call
-                        stack.reset(camlState.getExternSp());
-                        env = stack.get(0);
-                        stack.popNIgnore(2);
-                        pc = pc.inc();
-                        continue;
-                    }
-
-                    case C_CALL2: {
-                        //Setup_for_c_call
-                        stack.push(pc);
-                        stack.push(env);
-                        camlState.setExternSp(stack.pointer());
-
-                        accu = primitives.get(pc.get()).call(new Value[]{accu, stack.get(2)});
-
-                        //Restore_after_c_call
-                        stack.reset(camlState.getExternSp());
-                        env = stack.get(0);
-                        stack.popNIgnore(3);
-                        pc = pc.inc();
-                        continue;
-                    }
-
-                    case C_CALL3: {
-                        //Setup_for_c_call
-                        stack.push(pc);
-                        stack.push(env);
-                        camlState.setExternSp(stack.pointer());
-
-                        accu = primitives.get(pc.get()).call(new Value[]{accu, stack.get(2), stack.get(3)});
-
-                        //Restore_after_c_call
-                        stack.reset(camlState.getExternSp());
-                        env = stack.get(0);
-                        stack.popNIgnore(4);
-                        pc = pc.inc();
-                        continue;
-                    }
-
-                    case C_CALL4: {
-                        //Setup_for_c_call
-                        stack.push(pc);
-                        stack.push(env);
-                        camlState.setExternSp(stack.pointer());
-
-                        accu = primitives.get(pc.get()).call(new Value[]{accu, stack.get(2), stack.get(3), stack.get(4)});
-
-                        //Restore_after_c_call
-                        stack.reset(camlState.getExternSp());
-                        env = stack.get(0);
-                        stack.popNIgnore(5);
-                        pc = pc.inc();
-                        continue;
-                    }
-
-                    case C_CALL5: {
-                        //Setup_for_c_call
-                        stack.push(pc);
-                        stack.push(env);
-                        camlState.setExternSp(stack.pointer());
-
-                        accu = primitives.get(pc.get()).call(new Value[]{accu, stack.get(2), stack.get(3), stack.get(4), stack.get(5)});
-
-                        //Restore_after_c_call
-                        stack.reset(camlState.getExternSp());
-                        env = stack.get(0);
-                        stack.popNIgnore(6);
-                        pc = pc.inc();
-                        continue;
-                    }
-
-                    case C_CALLN: {
-                        int nargs = pc.get();
-                        pc = pc.inc();
-                        //Setup_for_c_call
-                        stack.push(pc);
-                        stack.push(env);
-                        camlState.setExternSp(stack.pointer());
-
-                        Value[] args = new Value[nargs];
-                        args[0] = accu;
-                        for (int i = 0; i < nargs; i++) {
-                            args[i + 1] = stack.get(2 + i);
-                        }
-
-                        accu = primitives.get(pc.get()).call(new Value[]{accu, stack.get(2), stack.get(3), stack.get(4), stack.get(5)});
-
-                        //Restore_after_c_call
-                        stack.reset(camlState.getExternSp());
-                        env = stack.get(0);
-                        stack.popNIgnore(2 + nargs - 1);
-                        pc = pc.inc();
-                        continue;
-                    }
-
-                    /* Integer constants */
-
-                    case CONST0:
-                        accu = new LongValue(0);
-                        continue;
-                    case CONST1:
-                        accu = new LongValue(1);
-                        continue;
-                    case CONST2:
-                        accu = new LongValue(2);
-                        continue;
-                    case CONST3:
-                        accu = new LongValue(3);
-                        continue;
-
-                    case PUSHCONST0:
-                        stack.push(accu);
-                        accu = new LongValue(0);
-                        continue;
-                    case PUSHCONST1:
-                        stack.push(accu);
-                        accu = new LongValue(1);
-                        continue;
-                    case PUSHCONST2:
-                        stack.push(accu);
-                        accu = new LongValue(2);
-                        continue;
-                    case PUSHCONST3:
-                        stack.push(accu);
-                        accu = new LongValue(3);
-                        continue;
-                    case PUSHCONSTINT:
-                        stack.push(accu);
-                        /* Fallthrough */
-                    case CONSTINT:
-                        accu = pc.getLongValue();
-                        pc = pc.inc();
-                        continue;
-
-                        /* Integer arithmetic */
-
-                    case NEGINT:
-                        accu = ((LongValue) accu).negate();
-                        continue;
-
-                    case ADDINT:
-                        accu = ((LongValue) accu).add((LongValue) stack.pop());
-                        continue;
-
-                    case SUBINT:
-                        accu = ((LongValue) accu).sub((LongValue) stack.pop());
-                        continue;
-
-                    case MULINT:
-                        accu = ((LongValue) accu).mul((LongValue) stack.pop());
-                        continue;
-
-                    case DIVINT: {
-                        try {
-                            accu = ((LongValue) accu).div((LongValue) stack.pop());
-                        } catch (DivideByZeroError e) {
-                            setupForCCall();
-                            raiseZeroDivide();
-                        }
-                        continue;
-                    }
-                    case MODINT: {
-                        try {
-                            accu = ((LongValue) accu).mod((LongValue) stack.pop());
-                        } catch (DivideByZeroError e) {
-                            setupForCCall();
-                            raiseZeroDivide();
-                        }
-                        continue;
-                    }
-                    case ANDINT:
-                        accu = ((LongValue) accu).and((LongValue) stack.pop());
-                        continue;
-                    case ORINT:
-                        accu = ((LongValue) accu).or((LongValue) stack.pop());
-                        continue;
-
-                    case XORINT:
-                        accu = ((LongValue) accu).xor((LongValue) stack.pop());
-                        continue;
-                    case LSLINT:
-                        accu = ((LongValue) accu).lsl((LongValue) stack.pop());
-                        continue;
-                        //?? Should we be treating unsigned and signed differently?
-                    case LSRINT:
-                        accu = ((LongValue) accu).ulsr((LongValue) stack.pop());
-                        continue;
-                    case ASRINT:
-                        accu = ((LongValue) accu).lsr((LongValue) stack.pop());
-                        continue;
-
-                    case EQ: {
-                        Value left = accu;
-                        Value right = stack.pop();
-                        if (left instanceof LongValue && right instanceof LongValue)
-                            accu = ((LongValue) left).eq((LongValue) right);
-                        else
-                            accu = booleanValue(left == right);
-                        continue;
-                    }
-                    case NEQ:
-                        accu = ((LongValue) accu).neq((LongValue) stack.pop());
-                        continue;
-                    case LTINT:
-                        accu = ((LongValue) accu).lt((LongValue) stack.pop());
-                        continue;
-                    case LEINT:
-                        accu = ((LongValue) accu).le((LongValue) stack.pop());
-                        continue;
-                    case GTINT:
-                        accu = ((LongValue) accu).gt((LongValue) stack.pop());
-                        continue;
-                    case GEINT:
-                        accu = ((LongValue) accu).ge((LongValue) stack.pop());
-                        continue;
-                    case ULTINT:
-                        accu = ((LongValue) accu).ult((LongValue) stack.pop());
-                        continue;
-                    case UGEINT:
-                        accu = ((LongValue) accu).uge((LongValue) stack.pop());
-                        continue;
-
-                    case BEQ: {
-                        if (pc.get() == ((LongValue) accu).getValue()) {
-                            pc = pc.inc();
-                            pc = pc.incN(pc.get());
-                        } else {
-                            pc = pc.incN(2);
-                        }
-                        continue;
-                    }
-                    case BNEQ: {
-
-                        if (!(accu instanceof LongValue) || pc.get() != ((LongValue) accu).getValue()) {
-                            pc = pc.inc();
-                            pc = pc.incN(pc.get());
-                        } else {
-                            pc = pc.incN(2);
-                        }
-                        continue;
-                    }
-                    case BLTINT: {
-                        if (pc.get() < ((LongValue) accu).getValue()) {
-                            pc = pc.inc();
-                            pc = pc.incN(pc.get());
-                        } else {
-                            pc = pc.incN(2);
-                        }
-                        continue;
-                    }
-                    case BLEINT: {
-                        if (pc.get() <= ((LongValue) accu).getValue()) {
-                            pc = pc.inc();
-                            pc = pc.incN(pc.get());
-                        } else {
-                            pc = pc.incN(2);
-                        }
-                        continue;
-                    }
-                    case BGTINT: {
-                        if (pc.get() > ((LongValue) accu).getValue()) {
-                            pc = pc.inc();
-                            pc = pc.incN(pc.get());
-                        } else {
-                            pc = pc.incN(2);
-                        }
-                        continue;
-                    }
-                    case BGEINT: {
-                        if (pc.get() >= ((LongValue) accu).getValue()) {
-                            pc = pc.inc();
-                            pc = pc.incN(pc.get());
-                        } else {
-                            pc = pc.incN(2);
-                        }
-                        continue;
-                    }
-                    case BULTINT: {
-                        if (Long.compareUnsigned(pc.get(), ((LongValue) accu).getValue()) < 0) {
-                            pc = pc.inc();
-                            pc = pc.incN(pc.get());
-                        } else {
-                            pc = pc.incN(2);
-                        }
-                        continue;
-                    }
-                    case BUGEINT: {
-                        if (Long.compareUnsigned(pc.get(), ((LongValue) accu).getValue()) >= 0) {
-                            pc = pc.inc();
-                            pc = pc.incN(pc.get());
-                        } else {
-                            pc = pc.incN(2);
-                        }
-                        continue;
-                    }
-                    case OFFSETINT:
-                        accu = ((LongValue) accu).add(pc.getLongValue());
-                        pc = pc.inc();
-                        continue;
-                    case OFFSETREF: {
-                        ObjectValue objectValue = (ObjectValue) accu;
-                        long v = LongValue.unwrap((LongValue) objectValue.getField(0));
-                        objectValue.setField(0, LongValue.wrap(v + pc.get()));
-                        accu = valUnit;
-                        pc = pc.inc();
-                        continue;
-                    }
-                    case ISINT: {
-                        accu = booleanValue(accu instanceof LongValue);
-                        continue;
-                    }
-//
-                    case GETMETHOD: {
-                        ObjectValue obj = (ObjectValue) stack.get(0);
-                        int lab = LongValue.unwrapInt((LongValue) accu);
-                        accu = obj.getObjectValueField(0).getField(lab);
-                        continue;
-                    }
-                    //TODO Look at th optimizaton
-                    case GETPUBMET:
-                        stack.push(accu);
-                        accu = LongValue.wrap(pc.get());
-                        pc = pc.incN(2);
-                        /* Fallthrough */
-                    case GETDYNMET: {
-                        /* accu == tag, sp[0] == object, *pc == cache */
-                        ObjectValue meths = ((ObjectValue) stack.get(0)).getObjectValueField(0);
-                        int li = 3, hi = (meths.getIntField(0) << 1) + 1, mi;
-                        int tag = LongValue.unwrapInt((LongValue) accu);
-                        while (li < hi) {
-                            mi = ((li + hi) >> 1) | 1;
-                            if (tag < meths.getIntField(mi)) {
-                                hi = mi - 2;
+                                pc = pc.dec(); /* restart the POPTRAP after processing the signal */
+                                processActions();
                             } else {
-                                li = mi;
+                                camlState.setTrapSp((StackPointer) stack.get(1));
+                                stack.popNIgnore(4);
                             }
+                            continue;
                         }
-                        accu = meths.getField(li - 1);
-                        continue;
-                    }
 
-                    case STOP:
-                        return accu;
-                    default: {
-                        throw new RuntimeException(String.format("Instruction %s not implemented", currInstr));
-                    }
-                }
-            } catch (OcamlInterpreterException e) {
-                Value v = e.getBucket(globalData);
-                camlState.setExceptionBucket(v);
-                stack.reset(camlState.getExternSp());
-                accu = v;
-                stashBacktrace(v, camlState.getExternSp(), 0);
-                raiseNoTrace = true;
+                        case RAISE_NOTRACE:
+                        case RERAISE:
+                        case RAISE: {
+                            switch (currInstr) {
+                                case RAISE_NOTRACE: {
+                                    checkTrapBarrier();
+                                    break;
+                                }
 
-            }
-            if (raiseNoTrace) {
-                StackPointer trapSp = camlState.getTrapSp();
+                                case RERAISE: {
+                                    checkTrapBarrier();
+                                    if (camlState.getBackTraceActive()) {
+                                        stack.push(pc.dec());
+                                        stashBacktrace(accu, stack.pointer(), 1);
+                                    }
+                                    break;
+                                }
+
+                                case RAISE: {
+                                    checkTrapBarrier();
+                                    if (camlState.getBackTraceActive()) {
+                                        stack.push(pc.dec());
+                                        stashBacktrace(accu, stack.pointer(), 0);
+                                    }
+                                    break;
+                                }
+                            }
+                            StackPointer trapSp = camlState.getTrapSp();
 //        throw new RuntimeException("Not implemented yet");
 
 //        if ((char *) Caml_state->trapsp
@@ -1182,14 +794,422 @@ public class Interpreter {
 //        return Make_exception_result(accu);
 //      }
 
-                stack.reset(trapSp);
-                pc = (CodePointer) stack.pop();
-                camlState.setTrapSp((StackPointer) stack.pop());
-                env = stack.pop();
-                extraArgs = ((LongValue) stack.pop()).getIntValue();
-                continue;
+                            stack.reset(trapSp);
+                            pc = getCodePonter((CodePointer) stack.pop());
+                            camlState.setTrapSp((StackPointer) stack.pop());
+                            env = stack.pop();
+                            extraArgs = ((LongValue) stack.pop()).getIntValue();
+                            continue;
+                        }
+
+                        /* Signal handling */
+
+                        case CHECK_SIGNALS: {   /* accu not preserved */
+                            if (getSomethingToDo()) {
+                                processActions();
+                            }
+                            continue;
+                        }
+
+                        /* Calling C functions */
+
+                        case C_CALL1: {
+                            //Setup_for_c_call
+                            stack.push(pc);
+                            stack.push(env);
+                            camlState.setExternSp(stack.pointer());
+
+                            accu = primitives.get(pc.get()).call(new Value[]{accu});
+
+                            //Restore_after_c_call
+                            stack.reset(camlState.getExternSp());
+                            env = stack.get(0);
+                            stack.popNIgnore(2);
+                            pc = pc.inc();
+                            continue;
+                        }
+
+                        case C_CALL2: {
+                            //Setup_for_c_call
+                            stack.push(pc);
+                            stack.push(env);
+                            camlState.setExternSp(stack.pointer());
+
+                            accu = primitives.get(pc.get()).call(new Value[]{accu, stack.get(2)});
+
+                            //Restore_after_c_call
+                            stack.reset(camlState.getExternSp());
+                            env = stack.get(0);
+                            stack.popNIgnore(3);
+                            pc = pc.inc();
+                            continue;
+                        }
+
+                        case C_CALL3: {
+                            //Setup_for_c_call
+                            stack.push(pc);
+                            stack.push(env);
+                            camlState.setExternSp(stack.pointer());
+
+                            accu = primitives.get(pc.get()).call(new Value[]{accu, stack.get(2), stack.get(3)});
+
+                            //Restore_after_c_call
+                            stack.reset(camlState.getExternSp());
+                            env = stack.get(0);
+                            stack.popNIgnore(4);
+                            pc = pc.inc();
+                            continue;
+                        }
+
+                        case C_CALL4: {
+                            //Setup_for_c_call
+                            stack.push(pc);
+                            stack.push(env);
+                            camlState.setExternSp(stack.pointer());
+
+                            accu = primitives.get(pc.get()).call(new Value[]{accu, stack.get(2), stack.get(3), stack.get(4)});
+
+                            //Restore_after_c_call
+                            stack.reset(camlState.getExternSp());
+                            env = stack.get(0);
+                            stack.popNIgnore(5);
+                            pc = pc.inc();
+                            continue;
+                        }
+
+                        case C_CALL5: {
+                            //Setup_for_c_call
+                            stack.push(pc);
+                            stack.push(env);
+                            camlState.setExternSp(stack.pointer());
+
+                            accu = primitives.get(pc.get()).call(new Value[]{accu, stack.get(2), stack.get(3), stack.get(4), stack.get(5)});
+
+                            //Restore_after_c_call
+                            stack.reset(camlState.getExternSp());
+                            env = stack.get(0);
+                            stack.popNIgnore(6);
+                            pc = pc.inc();
+                            continue;
+                        }
+
+                        case C_CALLN: {
+                            int nargs = pc.get();
+                            pc = pc.inc();
+                            //Setup_for_c_call
+                            stack.push(pc);
+                            stack.push(env);
+                            camlState.setExternSp(stack.pointer());
+
+                            Value[] args = new Value[nargs];
+                            args[0] = accu;
+                            for (int i = 0; i < nargs; i++) {
+                                args[i + 1] = stack.get(2 + i);
+                            }
+
+                            accu = primitives.get(pc.get()).call(new Value[]{accu, stack.get(2), stack.get(3), stack.get(4), stack.get(5)});
+
+                            //Restore_after_c_call
+                            stack.reset(camlState.getExternSp());
+                            env = stack.get(0);
+                            stack.popNIgnore(2 + nargs - 1);
+                            pc = pc.inc();
+                            continue;
+                        }
+
+                        /* Integer constants */
+
+                        case CONST0:
+                            accu = new LongValue(0);
+                            continue;
+                        case CONST1:
+                            accu = new LongValue(1);
+                            continue;
+                        case CONST2:
+                            accu = new LongValue(2);
+                            continue;
+                        case CONST3:
+                            accu = new LongValue(3);
+                            continue;
+
+                        case PUSHCONST0:
+                            stack.push(accu);
+                            accu = new LongValue(0);
+                            continue;
+                        case PUSHCONST1:
+                            stack.push(accu);
+                            accu = new LongValue(1);
+                            continue;
+                        case PUSHCONST2:
+                            stack.push(accu);
+                            accu = new LongValue(2);
+                            continue;
+                        case PUSHCONST3:
+                            stack.push(accu);
+                            accu = new LongValue(3);
+                            continue;
+                        case PUSHCONSTINT:
+                            stack.push(accu);
+                            /* Fallthrough */
+                        case CONSTINT:
+                            accu = pc.getLongValue();
+                            pc = pc.inc();
+                            continue;
+
+                            /* Integer arithmetic */
+
+                        case NEGINT:
+                            accu = ((LongValue) accu).negate();
+                            continue;
+
+                        case ADDINT:
+                            accu = ((LongValue) accu).add((LongValue) stack.pop());
+                            continue;
+
+                        case SUBINT:
+                            accu = ((LongValue) accu).sub((LongValue) stack.pop());
+                            continue;
+
+                        case MULINT:
+                            accu = ((LongValue) accu).mul((LongValue) stack.pop());
+                            continue;
+
+                        case DIVINT: {
+                            try {
+                                accu = ((LongValue) accu).div((LongValue) stack.pop());
+                            } catch (DivideByZeroError e) {
+                                setupForCCall();
+                                raiseZeroDivide();
+                            }
+                            continue;
+                        }
+                        case MODINT: {
+                            try {
+                                accu = ((LongValue) accu).mod((LongValue) stack.pop());
+                            } catch (DivideByZeroError e) {
+                                setupForCCall();
+                                raiseZeroDivide();
+                            }
+                            continue;
+                        }
+                        case ANDINT:
+                            accu = ((LongValue) accu).and((LongValue) stack.pop());
+                            continue;
+                        case ORINT:
+                            accu = ((LongValue) accu).or((LongValue) stack.pop());
+                            continue;
+
+                        case XORINT:
+                            accu = ((LongValue) accu).xor((LongValue) stack.pop());
+                            continue;
+                        case LSLINT:
+                            accu = ((LongValue) accu).lsl((LongValue) stack.pop());
+                            continue;
+                            //?? Should we be treating unsigned and signed differently?
+                        case LSRINT:
+                            accu = ((LongValue) accu).ulsr((LongValue) stack.pop());
+                            continue;
+                        case ASRINT:
+                            accu = ((LongValue) accu).lsr((LongValue) stack.pop());
+                            continue;
+
+                        case EQ: {
+                            Value left = accu;
+                            Value right = stack.pop();
+                            if (left instanceof LongValue && right instanceof LongValue)
+                                accu = ((LongValue) left).eq((LongValue) right);
+                            else
+                                accu = booleanValue(left == right);
+                            continue;
+                        }
+                        case NEQ:
+                            accu = ((LongValue) accu).neq((LongValue) stack.pop());
+                            continue;
+                        case LTINT:
+                            accu = ((LongValue) accu).lt((LongValue) stack.pop());
+                            continue;
+                        case LEINT:
+                            accu = ((LongValue) accu).le((LongValue) stack.pop());
+                            continue;
+                        case GTINT:
+                            accu = ((LongValue) accu).gt((LongValue) stack.pop());
+                            continue;
+                        case GEINT:
+                            accu = ((LongValue) accu).ge((LongValue) stack.pop());
+                            continue;
+                        case ULTINT:
+                            accu = ((LongValue) accu).ult((LongValue) stack.pop());
+                            continue;
+                        case UGEINT:
+                            accu = ((LongValue) accu).uge((LongValue) stack.pop());
+                            continue;
+
+                        case BEQ: {
+                            if (pc.get() == ((LongValue) accu).getValue()) {
+                                pc = pc.inc();
+                                pc = pc.incN(pc.get());
+                            } else {
+                                pc = pc.incN(2);
+                            }
+                            continue;
+                        }
+                        case BNEQ: {
+
+                            if (!(accu instanceof LongValue) || pc.get() != ((LongValue) accu).getValue()) {
+                                pc = pc.inc();
+                                pc = pc.incN(pc.get());
+                            } else {
+                                pc = pc.incN(2);
+                            }
+                            continue;
+                        }
+                        case BLTINT: {
+                            if (pc.get() < ((LongValue) accu).getValue()) {
+                                pc = pc.inc();
+                                pc = pc.incN(pc.get());
+                            } else {
+                                pc = pc.incN(2);
+                            }
+                            continue;
+                        }
+                        case BLEINT: {
+                            if (pc.get() <= ((LongValue) accu).getValue()) {
+                                pc = pc.inc();
+                                pc = pc.incN(pc.get());
+                            } else {
+                                pc = pc.incN(2);
+                            }
+                            continue;
+                        }
+                        case BGTINT: {
+                            if (pc.get() > ((LongValue) accu).getValue()) {
+                                pc = pc.inc();
+                                pc = pc.incN(pc.get());
+                            } else {
+                                pc = pc.incN(2);
+                            }
+                            continue;
+                        }
+                        case BGEINT: {
+                            if (pc.get() >= ((LongValue) accu).getValue()) {
+                                pc = pc.inc();
+                                pc = pc.incN(pc.get());
+                            } else {
+                                pc = pc.incN(2);
+                            }
+                            continue;
+                        }
+                        case BULTINT: {
+                            if (Long.compareUnsigned(pc.get(), ((LongValue) accu).getValue()) < 0) {
+                                pc = pc.inc();
+                                pc = pc.incN(pc.get());
+                            } else {
+                                pc = pc.incN(2);
+                            }
+                            continue;
+                        }
+                        case BUGEINT: {
+                            if (Long.compareUnsigned(pc.get(), ((LongValue) accu).getValue()) >= 0) {
+                                pc = pc.inc();
+                                pc = pc.incN(pc.get());
+                            } else {
+                                pc = pc.incN(2);
+                            }
+                            continue;
+                        }
+                        case OFFSETINT:
+                            accu = ((LongValue) accu).add(pc.getLongValue());
+                            pc = pc.inc();
+                            continue;
+                        case OFFSETREF: {
+                            ObjectValue objectValue = (ObjectValue) accu;
+                            long v = LongValue.unwrap((LongValue) objectValue.getField(0));
+                            objectValue.setField(0, LongValue.wrap(v + pc.get()));
+                            accu = valUnit;
+                            pc = pc.inc();
+                            continue;
+                        }
+                        case ISINT: {
+                            accu = booleanValue(accu instanceof LongValue);
+                            continue;
+                        }
+//
+                        case GETMETHOD: {
+                            ObjectValue obj = (ObjectValue) stack.get(0);
+                            int lab = LongValue.unwrapInt((LongValue) accu);
+                            accu = obj.getObjectValueField(0).getField(lab);
+                            continue;
+                        }
+                        //TODO Look at th optimizaton
+                        case GETPUBMET:
+                            stack.push(accu);
+                            accu = LongValue.wrap(pc.get());
+                            pc = pc.incN(2);
+                            /* Fallthrough */
+                        case GETDYNMET: {
+                            /* accu == tag, sp[0] == object, *pc == cache */
+                            ObjectValue meths = ((ObjectValue) stack.get(0)).getObjectValueField(0);
+                            int li = 3, hi = (meths.getIntField(0) << 1) + 1, mi;
+                            int tag = LongValue.unwrapInt((LongValue) accu);
+                            while (li < hi) {
+                                mi = ((li + hi) >> 1) | 1;
+                                if (tag < meths.getIntField(mi)) {
+                                    hi = mi - 2;
+                                } else {
+                                    li = mi;
+                                }
+                            }
+                            accu = meths.getField(li - 1);
+                            continue;
+                        }
+
+                        case STOP:
+                            return accu;
+                        default: {
+                            throw new RuntimeException(String.format("Instruction %s not implemented", currInstr));
+                        }
+                    }
+                } catch (OcamlInterpreterException e) {
+                    Value v = e.getBucket(globalData);
+                    camlState.setExceptionBucket(v);
+                    stack.reset(camlState.getExternSp());
+                    accu = v;
+                    stashBacktrace(v, camlState.getExternSp(), 0);
+                    raiseNoTrace = true;
+
+                }
+                if (raiseNoTrace) {
+                    StackPointer trapSp = camlState.getTrapSp();
+                    assert trapSp != null;
+//        throw new RuntimeException("Not implemented yet");
+
+//        if ((char *) Caml_state->trapsp
+//          >= (char *) Caml_state->stack_high - initial_sp_offset) {
+//        Caml_state->external_raise = initial_external_raise;
+//        Caml_state->extern_sp = (value *) ((char *) Caml_state->stack_high
+//                                    - initial_sp_offset);
+//        caml_callback_depth--;
+//        return Make_exception_result(accu);
+//      }
+
+                    stack.reset(trapSp);
+                    pc = getCodePonter((CodePointer) stack.pop());
+                    camlState.setTrapSp((StackPointer) stack.pop());
+                    env = stack.pop();
+                    extraArgs = ((LongValue) stack.pop()).getIntValue();
+                    continue;
+                }
             }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
+    }
+
+    private static CodePointer getCodePonter(Value accu) {
+        if(accu instanceof ObjectValue) {
+            return (CodePointer)((ObjectValue) accu).getField(0);
+        }
+        return (CodePointer)accu;
     }
 
     private void raiseZeroDivide() {

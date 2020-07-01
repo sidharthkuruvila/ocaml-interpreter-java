@@ -101,6 +101,23 @@ let test_nativeint _ =
   let l = Array.fold_left add zero k in
   print_endline  (to_string l)
 
+let test_int64 _ =
+  print_endline "Test int64";
+  let open Int64 in
+  let a = of_float 3.5 in
+  let b = Int64.of_int 4 in
+  let c = of_string "7" in
+  let d = match of_string_opt "abc" with | None -> of_int 23 | Some _ -> failwith "Expected None" in
+  let e = one in
+  let f = abs minus_one in
+  let g = add b c in
+  let h = of_int (compare b c) in
+  let i = div c a in
+  let j = match of_string_opt "17" with | None -> failwith "Expected a number" | Some n -> n  in
+  let k = [| a; b; c; d; e; f; g; h; i; j |] in
+  let l = Array.fold_left add zero k in
+  print_endline  (to_string l)
+
 let test_ref _ =
   let x = ref 1 in
   x := 1 + !x;
@@ -135,12 +152,29 @@ let test_oops _ =
   o#set "world";
   print_endline (o#get)
 
+let test_sys _ =
+  print_endline "test_sys";
+  let env_path = Sys.getenv "PATH" in
+  print_endline env_path;
+  let env_o = Sys.getenv_opt "XYZ_UNKNOWN" in
+  print_endline "boo";
+  let cur_dir = Sys.getcwd () in
+  print_endline cur_dir;
+  Sys.chdir "..";
+  print_endline (Sys.getcwd ());
+  Sys.chdir cur_dir;
+  print_endline (Sys.getcwd ());
+  print_endline (make_string_from_array ~f:(fun x -> x) ~sep:", " (Sys.argv));
+  print_endline (Bool.to_string (Sys.is_directory cur_dir))
+
 (*hello world*)
 let _ = begin
+  test_int64 ();
+  test_nativeint ();
+  test_sys ();
   test_oops ();
   test_exception ();
   test_ref ();
-  test_nativeint ();
   test1 ();
   test2 ();
   test3 ();

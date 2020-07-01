@@ -79,7 +79,7 @@ public class StringValue implements Value {
         return new StringValue(bytes);
     }
 
-    public ValueTag getTag() {
+    public int getTag() {
         return ValueTag.String_tag;
     }
 
@@ -93,5 +93,18 @@ public class StringValue implements Value {
 
     public static Value equal(StringValue t, StringValue u) {
         return Value.booleanValue(Arrays.compare(t.bytes, u.bytes)==0);
+    }
+
+    public static Value fillBytes(StringValue stringValue, LongValue offsetValue,  LongValue lenValue, LongValue initValue) {
+        byte[] bytes = unwrap(stringValue);
+        int offset = LongValue.unwrapInt(offsetValue);
+        int len = LongValue.unwrapInt(lenValue);
+        int init = LongValue.unwrapInt(initValue);
+        Arrays.fill(bytes, offset, offset + len, (byte)init);
+        return valUnit;
+    }
+
+    public static Value stringLength(StringValue value){
+        return LongValue.wrap(value.length());
     }
 }

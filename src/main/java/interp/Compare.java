@@ -88,8 +88,8 @@ public class Compare {
                     return GREATER;
                 }
             } else {
-                ValueTag t1 = value1.getTag();
-                ValueTag t2 = value2.getTag();
+                int t1 = value1.getTag();
+                int t2 = value2.getTag();
                 if (t1 != t2) {
                     if (t1 == ForwardTag) {
                         value1 = value1.asObjectValue().getField(0);
@@ -102,7 +102,7 @@ public class Compare {
                     if (t1 == Infix_tag) t1 = Closure_tag;
                     if (t2 == Infix_tag) t2 = Closure_tag;
                     if (t1 != t2) {
-                        return t1.getTag() - t2.getTag();
+                        return t1 - t2;
                     } else {
                         // goto next_item;
                         throw new RuntimeException();
@@ -276,4 +276,14 @@ public class Compare {
         long res = compare(value1, value2, false);
         return Value.booleanValue(res == 0);
     }
+
+    Value lessEqual(Value value1, Value value2) {
+        long res = compare(value1, value2, false);
+        return Value.booleanValue(res <= 0 && res != UNORDERED);
+    }
+    Value lessThan(Value value1, Value value2) {
+        long res = compare(value1, value2, false);
+        return Value.booleanValue(res < 0 && res != UNORDERED);
+    }
+
 }

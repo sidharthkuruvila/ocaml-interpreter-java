@@ -299,7 +299,7 @@ public class Intern {
             code = dis.readUnsignedByte();
             if (code >= PREFIX_SMALL_INT) {
                 if (code >= PREFIX_SMALL_BLOCK) {
-                    ValueTag tag = ValueTag.of(code & 0xF);
+                    int tag = ValueTag.of(code & 0xF);
                     int size = (code >> 4) & 0x7;
                     if(size  == 0) {
                         next = new Atom(tag);
@@ -364,7 +364,7 @@ public class Intern {
                         }
                         case CODE_BLOCK32: {
                             int header = dis.readInt();
-                            ValueTag tag = ValueTag.of(header & 0xFF);
+                            int tag = ValueTag.of(header & 0xFF);
                             int size = header >>> 10;
                             ObjectValue block = new ObjectValue(tag, size);
                             bottom.setField(field, block);
@@ -520,7 +520,7 @@ public class Intern {
         return v;
     }
 
-    private Value readBlock(List<Value> internObjectTable, DataInputStream dis, ValueTag tag, int size) throws IOException {
+    private Value readBlock(List<Value> internObjectTable, DataInputStream dis, int tag, int size) throws IOException {
         if (size == 0) {
             return new Atom(tag);
         } else {

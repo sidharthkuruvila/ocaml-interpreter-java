@@ -15,6 +15,7 @@ public class CamlState {
     }
 
     public void setTrapSp(StackPointer trapSp) {
+        assert trapSp!=null;
         this.trapSp = trapSp;
     }
 

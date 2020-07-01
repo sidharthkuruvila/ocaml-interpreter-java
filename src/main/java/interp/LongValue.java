@@ -1,6 +1,7 @@
 package interp;
 
 import interp.exceptions.DivideByZeroError;
+import interp.value.DoubleValue;
 import interp.value.StringValue;
 import interp.value.Value;
 
@@ -176,5 +177,9 @@ public class LongValue implements Value {
 
     public static LongValue compare(LongValue t, LongValue u) {
         return wrap(Long.compare(unwrap(t), unwrap(u)));
+    }
+
+    public static LongValue ofDoubleValue(DoubleValue doubleValue) {
+        return wrap((long)DoubleValue.unwrap(doubleValue));
     }
 }

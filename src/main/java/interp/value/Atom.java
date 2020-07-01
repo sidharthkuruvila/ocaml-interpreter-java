@@ -3,13 +3,13 @@ package interp.value;
 import interp.ValueTag;
 
 public class Atom implements Value {
-    private final ValueTag tag;
+    private final int tag;
 
-    public Atom(ValueTag tag) {
+    public Atom(int tag) {
         this.tag = tag;
     }
 
-    public ValueTag getTag(){
+    public int getTag(){
         return tag;
     }
 }

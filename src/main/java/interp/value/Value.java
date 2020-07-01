@@ -28,7 +28,7 @@ public interface Value {
     default LongValue asLongValue() {
         return (LongValue) this;
     }
-    default ValueTag getTag() {
+    default int getTag() {
         return ValueTag.PAIR_TAG;
     }
 

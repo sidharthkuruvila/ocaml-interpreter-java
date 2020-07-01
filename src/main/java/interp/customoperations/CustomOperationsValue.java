@@ -20,7 +20,7 @@ public class CustomOperationsValue<V> implements Value {
         return data;
     }
 
-    public ValueTag getTag() {
+    public int getTag() {
         return ValueTag.Custom_tag;
     }
 

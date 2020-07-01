@@ -67,7 +67,7 @@ public class DoubleArray implements BaseArrayValue<DoubleArray>, Value {
         return new DoubleArray(new double[LongValue.unwrapInt((LongValue) size)]);
     }
 
-    public ValueTag getTag() {
+    public int getTag() {
         return ValueTag.Double_array_tag;
     }
 
