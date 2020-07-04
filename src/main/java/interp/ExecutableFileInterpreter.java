@@ -1,6 +1,5 @@
 package interp;
 
-import com.google.common.primitives.Ints;
 import interp.customoperations.CustomOperationsList;
 import interp.ints.Int64CustomOperations;
 import interp.ints.NativeIntCustomOperations;
@@ -24,7 +23,8 @@ public class ExecutableFileInterpreter {
     }
 
     public ExecutableFileInterpreter(ChannelRegistry channelRegistry) throws IOException {
-        final Sys sys = new Sys("exec", new String[0]);
+//        final Sys sys = new Sys("exec", new String[0]);
+        final Sys sys = new Sys("exec", new String[]{"/Users/sidharthkuruvila/src/ocaml/interp/src/test/resources/interp/interpreter/test1.ml"});
         OOIdGenerator ooIdGenerator = new OOIdGenerator();
         CustomOperationsList customOperationsList = new CustomOperationsList();
         CodeFragmentTable codeFragmentTable = new CodeFragmentTable();
@@ -157,9 +157,9 @@ public class ExecutableFileInterpreter {
         primitiveRegistry.unimplemented("caml_ephe_get_key");
         primitiveRegistry.unimplemented("caml_ephe_get_key_copy");
         primitiveRegistry.unimplemented("caml_ephe_set_data");
-        primitiveRegistry.unimplemented("caml_ephe_set_key");
+        primitiveRegistry.addFunc3("caml_ephe_set_key", Weak::setValue);
         primitiveRegistry.unimplemented("caml_ephe_unset_data");
-        primitiveRegistry.unimplemented("caml_ephe_unset_key");
+        primitiveRegistry.addFunc2("caml_ephe_unset_key", Weak::unsetValue);
         primitiveRegistry.unimplemented("caml_eq_float");
         primitiveRegistry.addFunc2("caml_equal", compare::equal);
         primitiveRegistry.unimplemented("caml_eventlog_pause");
@@ -217,7 +217,12 @@ public class ExecutableFileInterpreter {
         primitiveRegistry.addFunc2("caml_greaterequal", compare::greaterEqual);
         primitiveRegistry.addFunc2("caml_greaterthan", compare::greaterThan);
         primitiveRegistry.unimplemented("caml_gt_float");
-        primitiveRegistry.unimplemented("caml_hash");
+        primitiveRegistry.addFuncN("caml_hash", (Value[] values) -> Hash.camlHash(
+                (LongValue) values[0],
+                (LongValue) values[1],
+                (LongValue) values[2],
+                values[3]
+        ));
         primitiveRegistry.unimplemented("caml_hash_univ_param");
         primitiveRegistry.unimplemented("caml_hexstring_of_float");
         primitiveRegistry.unimplemented("caml_hypot_float");
@@ -438,8 +443,8 @@ public class ExecutableFileInterpreter {
         primitiveRegistry.addFunc0("caml_sys_const_ostype_win32", sys::constOsTypeWin32);
         primitiveRegistry.addFunc0("caml_sys_const_word_size", sys::sysConstWordSize);
         primitiveRegistry.addPrimitive(new SysExecutableName());
-        primitiveRegistry.unimplemented("caml_sys_exit");
-        primitiveRegistry.unimplemented("caml_sys_file_exists");
+        primitiveRegistry.addFunc1("caml_sys_exit", sys::exit);
+        primitiveRegistry.addFunc1("caml_sys_file_exists", sys::fileExists);
         primitiveRegistry.unimplemented("caml_sys_get_argv");
         primitiveRegistry.addPrimitive(new SysGetConfig());
         primitiveRegistry.addFunc1("caml_sys_getcwd", sys::getCwd);
@@ -449,7 +454,7 @@ public class ExecutableFileInterpreter {
         primitiveRegistry.unimplemented("caml_sys_modify_argv");
         primitiveRegistry.unimplemented("caml_sys_open");
         primitiveRegistry.unimplemented("caml_sys_random_seed");
-        primitiveRegistry.unimplemented("caml_sys_read_directory");
+        primitiveRegistry.addFunc1("caml_sys_read_directory", sys::readDirectory);
         primitiveRegistry.unimplemented("caml_sys_remove");
         primitiveRegistry.unimplemented("caml_sys_rename");
         primitiveRegistry.unimplemented("caml_sys_system_command");
@@ -461,10 +466,16 @@ public class ExecutableFileInterpreter {
         primitiveRegistry.unimplemented("caml_terminfo_rows");
         primitiveRegistry.unimplemented("caml_trunc_float");
         primitiveRegistry.unimplemented("caml_update_dummy");
-        primitiveRegistry.unimplemented("caml_weak_blit");
+        primitiveRegistry.addFuncN("caml_weak_blit", (Value[] values) -> Weak.blit(
+                (Weak) values[0],
+                (LongValue) values[1],
+                (Weak) values[2],
+                (LongValue) values[3],
+                (LongValue) values[4]
+        ));
         primitiveRegistry.unimplemented("caml_weak_check");
-        primitiveRegistry.unimplemented("caml_weak_create");
-        primitiveRegistry.unimplemented("caml_weak_get");
+        primitiveRegistry.addFunc1("caml_weak_create", Weak::create);
+        primitiveRegistry.addFunc2("caml_weak_get", Weak::getValue);
         primitiveRegistry.unimplemented("caml_weak_get_copy");
         primitiveRegistry.unimplemented("caml_weak_set");
 

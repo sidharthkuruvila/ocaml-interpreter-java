@@ -135,9 +135,6 @@ public class Interpreter {
 
                     pc = pc.inc();
                     pw.println(currInstr + ", " + pc.index);
-                    if(pc.index == 34962) {
-                        System.out.println("indexed");
-                    }
 //                    instructionTrace.add(currInstr);
                     switch (currInstr) {
                         case ACC0:
@@ -666,8 +663,12 @@ public class Interpreter {
                                 size = 0;
                             } else if (accu instanceof ObjectValue) {
                                 size = ((ObjectValue) accu).getSize();
-                            } else {
+                            } else if (accu instanceof DoubleArray){
                                 size = ((DoubleArray) accu).getSize();
+                            } else if (accu instanceof Weak) {
+                                size = ((Weak) accu).getSize() + 2;
+                            } else {
+                                throw new IllegalStateException();
                             }
                             accu = new LongValue(size);
                             continue;

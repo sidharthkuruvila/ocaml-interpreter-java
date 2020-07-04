@@ -171,7 +171,7 @@ public class LongValue implements Value {
     public static StringValue format(StringValue formatStringValue, LongValue nValue) {
         String formatString = formatStringValue.getString();
         long n = unwrap(nValue);
-        String formatted = String.format(formatString, n);
+        String formatted = String.format(formatString.replaceAll("%i", "%d"), n);
         return StringValue.ofString(formatted);
     }
 

@@ -35,9 +35,6 @@ public class ObjectValue implements Value, BaseArrayValue<ObjectValue> {
     }
 
     public void setField(int field, Value value) {
-        if(field == 172) {
-            System.out.println("what happenin!");
-        }
         fields[field] = value;
     }
 

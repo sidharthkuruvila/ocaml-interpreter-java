@@ -18,6 +18,8 @@ public class ValueTag {
     public static final int Custom_tag = 255;
     public static final int Infix_tag = 249;
     public static final int Abstract_tag = 251;
+    public static final int Forward_tag = 250;
+    public static final int Some_tag = 0;
 
 //    ValueTag(int tag) {
 //        this.tag = tag;

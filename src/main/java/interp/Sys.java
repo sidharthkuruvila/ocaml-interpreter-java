@@ -95,4 +95,29 @@ public class Sys {
         File p = new File(pathString);
         return booleanValue(p.isDirectory());
     }
+
+    public Value readDirectory(StringValue t) {
+        String pathString = t.getString();
+        File p = new File(pathString);
+        String[] filenames = p.list();
+        if(filenames == null) {
+            throw Fail.caml_sys_error(t);
+        }
+        ObjectValue objectValue = new ObjectValue(0, filenames.length);
+        for(int i = 0; i < filenames.length; i++){
+            objectValue.setField(i, StringValue.ofString(filenames[i]));
+        }
+        return objectValue;
+    }
+
+    public Value fileExists(StringValue t) {
+        String pathString = t.getString();
+        File p = new File(pathString);
+        return booleanValue(p.exists());
+    }
+
+    public Value exit(LongValue exitCode) {
+        System.exit(LongValue.unwrapInt(exitCode));
+        throw new RuntimeException("Should never come here");
+    }
 }

@@ -211,7 +211,7 @@ public class Compare {
                                 stack.push(new ValuePair(v1, v2, sz1 - 1));
                             }
                             value1 = v1.getField(0);
-                            value2 = v2.getField(1);
+                            value2 = v2.getField(0);
                             /* Continue comparison with first field */
                             continue;
                         }

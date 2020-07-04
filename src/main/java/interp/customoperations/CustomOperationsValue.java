@@ -24,4 +24,12 @@ public class CustomOperationsValue<V> implements Value {
         return ValueTag.Custom_tag;
     }
 
+    public boolean hasHash() {
+        return ops().hash != null;
+    }
+
+    public long hash() {
+        return ops().hash.apply(getData());
+    }
+
 }

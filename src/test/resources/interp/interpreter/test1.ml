@@ -165,13 +165,43 @@ let test_sys _ =
   Sys.chdir cur_dir;
   print_endline (Sys.getcwd ());
   print_endline (make_string_from_array ~f:(fun x -> x) ~sep:", " (Sys.argv));
-  print_endline (Bool.to_string (Sys.is_directory cur_dir))
+  print_endline (Bool.to_string (Sys.is_directory cur_dir));
+  let files = Sys.readdir "." in
+  print_endline (make_string_from_array ~f:(fun x -> x) ~sep:", " (files))
+
+let test_hash () =
+  print_endline "test_hash";
+  let open Hashtbl in
+  let a = hash 123 in
+  let b = hash "abc" in
+  let c = hash [| 1.; 2.; 3.|] in
+  let d = hash [| "a"; "b"; "c" |] in
+  let e = hash (new foo) in
+  let x = a + b + c + d + e in
+  print_endline (string_of_int x)
+
+let option_or_else ~default v =
+  match v with
+  | Some v -> v
+  | None -> default
+
+let test_weak () =
+  let default = option_or_else ~default:"default" in
+  print_endline "test_weak";
+  let a = Weak.create 3 in
+  Weak.set a 1 (Some "abc");
+  Weak.set a 2 None;
+  print_endline (default (Weak.get a 0));
+  print_endline (default (Weak.get a 1));
+  print_endline (default (Weak.get a 2))
 
 (*hello world*)
 let _ = begin
+  (*test_weak ();
+  test_hash ();
   test_int64 ();
-  test_nativeint ();
-  test_sys ();
+  test_nativeint ();*)
+  test_sys ()(*;
   test_oops ();
   test_exception ();
   test_ref ();
@@ -184,5 +214,5 @@ let _ = begin
   test7 ();
   test8 ();
   test9 ();
-  ()
+  ()*)
 end
