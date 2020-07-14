@@ -8,7 +8,7 @@ import java.util.Arrays;
 public class DoubleArray implements BaseArrayValue<DoubleArray>, Value {
     private final double[] values;
 
-    public DoubleArray(double[] values){
+    public DoubleArray(double[] values) {
         this.values = values;
     }
 
@@ -30,7 +30,7 @@ public class DoubleArray implements BaseArrayValue<DoubleArray>, Value {
 
     @Override
     public void setField(int field, Value value) {
-        values[field] = ((DoubleValue)value).getValue();
+        values[field] = ((DoubleValue) value).getValue();
     }
 
     @Override
@@ -50,7 +50,7 @@ public class DoubleArray implements BaseArrayValue<DoubleArray>, Value {
 
     @Override
     public BaseArrayValue<?> append(BaseArrayValue<?> value1) {
-        DoubleArray other = (DoubleArray)value1;
+        DoubleArray other = (DoubleArray) value1;
         double[] arr = new double[getSize() + other.getSize()];
         DoubleArray out = new DoubleArray(arr);
         this.blitTo(0, out, 0, getSize());
@@ -69,6 +69,10 @@ public class DoubleArray implements BaseArrayValue<DoubleArray>, Value {
 
     public int getTag() {
         return ValueTag.Double_array_tag;
+    }
+
+    public static DoubleArray wrap(double[] arr) {
+        return new DoubleArray(arr);
     }
 
 }

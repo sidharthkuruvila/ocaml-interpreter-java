@@ -1,7 +1,6 @@
 package interp.value;
 
 import interp.LongValue;
-import interp.ValueTag;
 
 import java.util.Arrays;
 

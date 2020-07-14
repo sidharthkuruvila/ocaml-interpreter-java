@@ -41,7 +41,7 @@ public class DoubleValue implements Value {
         return wrap(Math.abs(unwrap(value)));
     }
 
-    private static DoubleValue wrap(double d) {
+    public static DoubleValue wrap(double d) {
         return new DoubleValue(d);
     }
     public static double unwrap(DoubleValue value){

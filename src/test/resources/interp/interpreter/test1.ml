@@ -195,13 +195,22 @@ let test_weak () =
   print_endline (default (Weak.get a 1));
   print_endline (default (Weak.get a 2))
 
+let test_mutual_recursion () =
+  let rec is_odd x =
+    if x = 0 then false else is_even (x - 1)
+  and is_even x =
+    if x = 0 then true else is_odd (x - 1) in
+  print_endline (string_of_bool (is_odd 10));
+  print_endline (string_of_bool (is_odd 9))
+
 (*hello world*)
 let _ = begin
-  (*test_weak ();
+  test_mutual_recursion ();
+  test_weak ();
   test_hash ();
   test_int64 ();
-  test_nativeint ();*)
-  test_sys ()(*;
+  test_nativeint ();
+  test_sys ();
   test_oops ();
   test_exception ();
   test_ref ();
@@ -214,5 +223,5 @@ let _ = begin
   test7 ();
   test8 ();
   test9 ();
-  ()*)
+  ()
 end

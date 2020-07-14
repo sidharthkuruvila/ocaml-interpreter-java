@@ -661,10 +661,8 @@ public class Interpreter {
                             int size;
                             if (accu instanceof Atom) {
                                 size = 0;
-                            } else if (accu instanceof ObjectValue) {
-                                size = ((ObjectValue) accu).getSize();
-                            } else if (accu instanceof DoubleArray){
-                                size = ((DoubleArray) accu).getSize();
+                            } else if (accu instanceof BaseArrayValue) {
+                                size = ((BaseArrayValue) accu).getSize();
                             } else if (accu instanceof Weak) {
                                 size = ((Weak) accu).getSize() + 2;
                             } else {

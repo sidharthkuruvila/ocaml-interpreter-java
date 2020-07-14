@@ -9,7 +9,7 @@ import java.util.List;
 
 import static interp.Interpreter.valUnit;
 
-public interface BaseArrayValue<T extends BaseArrayValue<T>> extends Value{
+public interface BaseArrayValue<T extends BaseArrayValue<T>> extends Value {
 
     static Value blit(BaseArrayValue src, LongValue offset, BaseArrayValue dest, LongValue destOffset, LongValue length) {
         src.blitTo(LongValue.unwrapInt(offset), dest, LongValue.unwrapInt(destOffset), LongValue.unwrapInt(length));
@@ -71,7 +71,7 @@ public interface BaseArrayValue<T extends BaseArrayValue<T>> extends Value{
                 length += ((DoubleArray)((ObjectValue)next).getField(0)).getSize();
                 arrs.add((DoubleArray)((ObjectValue)next).getField(0));
             }
-            DoubleArray doubleArray = new DoubleArray(new double[length]);
+            DoubleArray doubleArray = DoubleArray.wrap(new double[length]);
 
             for(int i = 0, n = 0; i < arrs.size(); n += arrs.get(i).getSize(), i++){
                 arrs.get(i).blitTo(0, doubleArray, n, arrs.get(i).getSize());
@@ -101,4 +101,5 @@ public interface BaseArrayValue<T extends BaseArrayValue<T>> extends Value{
         return ((BaseArrayValue)arrayValue).subArray((LongValue.unwrapInt((LongValue)offset)), LongValue.unwrapInt((LongValue)length));
     }
 
+    int getSize();
 }
