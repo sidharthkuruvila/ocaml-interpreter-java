@@ -31,6 +31,21 @@ public class PrimitiveRegistry {
     public <T extends Value> void addFunc1(String name, Function<T, Value> fn){
         primitives.put(name, new Func1Primitive<>(name, fn));
     }
+
+    public <P1, R> void addFunc1(String name, Transformer<P1> param1, Transformer<R> returns, Function<P1, R> fn){
+        primitives.put(name, new Primitive() {
+            @Override
+            public Value call(Value[] values) {
+                return returns.wrap(fn.apply(param1.unwrap(values[0])));
+            }
+
+            @Override
+            public String getName() {
+                return name;
+            }
+        });
+    }
+
     public <T extends Value, U extends Value> void addFunc2(String name, BiFunction<T, U, Value> fn){
         primitives.put(name, new Func2Primitive<>(name, fn));
     }

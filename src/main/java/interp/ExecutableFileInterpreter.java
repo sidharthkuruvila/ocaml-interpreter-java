@@ -40,7 +40,7 @@ public class ExecutableFileInterpreter {
         primitiveRegistry.unimplemented("caml_add_debug_info");
         primitiveRegistry.addFunc2("caml_add_float", DoubleValue::add);
         primitiveRegistry.addFunc1("caml_alloc_dummy", ExecutableFileInterpreter::allocDummy);
-        primitiveRegistry.addFunc1("caml_alloc_dummy_float", ExecutableFileInterpreter::allocDummy);
+        primitiveRegistry.addFunc1("caml_alloc_dummy_float", Transformer.intValue, Transformer.doubleArray, Dummy::allocDouble);
         primitiveRegistry.addFunc1("caml_alloc_dummy_function", ExecutableFileInterpreter::allocDummy);
         primitiveRegistry.unimplemented("caml_alloc_dummy_infix");
         primitiveRegistry.addFunc2("caml_array_append", BaseArrayValue::append);
@@ -299,7 +299,7 @@ public class ExecutableFileInterpreter {
         primitiveRegistry.unimplemented("caml_le_float");
         primitiveRegistry.addFunc2("caml_lessequal", compare::lessEqual);
         primitiveRegistry.addFunc2("caml_lessthan", compare::lessThan);
-        primitiveRegistry.unimplemented("caml_lex_engine");
+        primitiveRegistry.addFunc3("caml_lex_engine", Lexer::engine);
         primitiveRegistry.unimplemented("caml_log10_float");
         primitiveRegistry.unimplemented("caml_log1p_float");
         primitiveRegistry.unimplemented("caml_log_float");
@@ -370,7 +370,7 @@ public class ExecutableFileInterpreter {
         primitiveRegistry.addFunc2("caml_nativeint_xor", NativeIntCustomOperations::xor);
         primitiveRegistry.addFunc1("caml_neg_float", DoubleValue::neg);
         primitiveRegistry.unimplemented("caml_neq_float");
-        primitiveRegistry.unimplemented("caml_new_lex_engine");
+        primitiveRegistry.addFunc3("caml_new_lex_engine", Lexer::caml_new_lex_engine);
         primitiveRegistry.unimplemented("caml_nextafter_float");
         primitiveRegistry.unimplemented("caml_notequal");
         primitiveRegistry.unimplemented("caml_obj_add_offset");
@@ -465,7 +465,7 @@ public class ExecutableFileInterpreter {
         primitiveRegistry.addFunc1("caml_tanh_float", DoubleValue::tanh);
         primitiveRegistry.unimplemented("caml_terminfo_rows");
         primitiveRegistry.unimplemented("caml_trunc_float");
-        primitiveRegistry.unimplemented("caml_update_dummy");
+        primitiveRegistry.addFunc2("caml_update_dummy", Dummy::update);
         primitiveRegistry.addFuncN("caml_weak_blit", (Value[] values) -> Weak.blit(
                 (Weak) values[0],
                 (LongValue) values[1],

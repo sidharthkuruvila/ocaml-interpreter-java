@@ -1022,7 +1022,7 @@ public class Interpreter {
                             continue;
                         }
                         case NEQ:
-                            accu = ((LongValue) accu).neq((LongValue) stack.pop());
+                            accu = accu instanceof LongValue ? ((LongValue) accu).neq((LongValue) stack.pop()) : booleanValue(accu != stack.pop());
                             continue;
                         case LTINT:
                             accu = ((LongValue) accu).lt((LongValue) stack.pop());

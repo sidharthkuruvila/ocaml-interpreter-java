@@ -8,7 +8,7 @@ public class ObjectValue implements Value, BaseArrayValue<ObjectValue> {
 
 
     private final int prefix;
-    private final int tag;
+    private int tag;
     private final Value[] fields;
 
     public ObjectValue(int tag, int size) {
@@ -80,7 +80,7 @@ public class ObjectValue implements Value, BaseArrayValue<ObjectValue> {
 
     @Override
     public void blitTo(int offset, ObjectValue dest, int destOffset, int length) {
-        System.arraycopy(fields, offset, dest.fields, destOffset, length);
+        System.arraycopy(fields, prefix + offset, dest.fields, dest.prefix + destOffset, length);
     }
 
     @Override
@@ -97,5 +97,9 @@ public class ObjectValue implements Value, BaseArrayValue<ObjectValue> {
     @Override
     public Value subArray(int offset, int length) {
         return new ObjectValue(tag, Arrays.copyOfRange(fields, offset, offset + length));
+    }
+
+    public void setTag(int tag) {
+        this.tag = tag;
     }
 }

@@ -203,8 +203,22 @@ let test_mutual_recursion () =
   print_endline (string_of_bool (is_odd 10));
   print_endline (string_of_bool (is_odd 9))
 
+
+
+let test_lexing () =
+  let lexbuf = Lexing.from_string "2*(3+4)\n" in
+  try
+    while true do
+      let t = Test_lex.token lexbuf in
+      print_endline (Test_lex.repr t)
+    done
+  with Failure msg ->
+    print_endline ("Final message:" ^ msg)
+
+
 (*hello world*)
 let _ = begin
+  test_lexing ();
   test_mutual_recursion ();
   test_weak ();
   test_hash ();
