@@ -1,5 +1,6 @@
 package interp.primitives;
 
+import interp.InterpreterContext;
 import interp.functions.Func3;
 import interp.value.Value;
 
@@ -13,7 +14,7 @@ public class Func3Primitive<T extends Value, U extends Value, V extends Value> i
     }
 
     @Override
-    public Value call(Value[] values) {
+    public Value call(InterpreterContext context, Value[] values) {
         return fn.apply((T)values[0], (U)values[1], (V)values[2]);
     }
 

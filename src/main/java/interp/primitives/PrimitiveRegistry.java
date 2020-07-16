@@ -1,5 +1,6 @@
 package interp.primitives;
 
+import interp.InterpreterContext;
 import interp.functions.Func3;
 import interp.value.Value;
 
@@ -28,14 +29,21 @@ public class PrimitiveRegistry {
     public void addFunc0(String name, Supplier<Value> fn){
         primitives.put(name, new Func0Primitive(name, fn));
     }
+
+    public void addFunc0Ctx(String name, Function<InterpreterContext, Value> fn) {
+        primitives.put(name, new Func0CtxPrimitive(name, fn));
+    }
+
     public <T extends Value> void addFunc1(String name, Function<T, Value> fn){
         primitives.put(name, new Func1Primitive<>(name, fn));
     }
-
+    public <T extends Value> void addFunc1Ctx(String name, BiFunction<InterpreterContext, T, Value> fn) {
+        primitives.put(name, new Func1CtxPrimitive<>(name, fn));
+    }
     public <P1, R> void addFunc1(String name, Transformer<P1> param1, Transformer<R> returns, Function<P1, R> fn){
         primitives.put(name, new Primitive() {
             @Override
-            public Value call(Value[] values) {
+            public Value call(InterpreterContext context, Value[] values) {
                 return returns.wrap(fn.apply(param1.unwrap(values[0])));
             }
 

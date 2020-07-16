@@ -1,5 +1,6 @@
 package interp.primitives;
 
+import interp.InterpreterContext;
 import interp.LongValue;
 import interp.value.Value;
 import interp.customoperations.CustomOperationsValue;
@@ -11,7 +12,7 @@ import static interp.Interpreter.valUnit;
 
 public class MlOutputCharPrimitive implements Primitive {
     @Override
-    public Value call(Value[] values) {
+    public Value call(InterpreterContext context, Value[] values) {
         CustomOperationsValue v = (CustomOperationsValue) values[0];
         Channel ch = (Channel) v.getData();
         int b = ((LongValue) values[1]).getIntValue();

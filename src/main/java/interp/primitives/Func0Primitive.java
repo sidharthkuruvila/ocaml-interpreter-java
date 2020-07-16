@@ -1,5 +1,6 @@
 package interp.primitives;
 
+import interp.InterpreterContext;
 import interp.value.Value;
 
 import java.util.function.Supplier;
@@ -13,7 +14,7 @@ public class Func0Primitive implements Primitive {
         this.fn = fn;
     }
     @Override
-    public Value call(Value[] values) {
+    public Value call(InterpreterContext context, Value[] values) {
         return fn.get();
     }
 

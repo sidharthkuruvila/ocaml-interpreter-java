@@ -1,5 +1,6 @@
 package interp.primitives;
 
+import interp.InterpreterContext;
 import interp.LongValue;
 import interp.OOIdGenerator;
 import interp.value.Value;
@@ -12,7 +13,7 @@ public class FreshOOIdPrimitive implements Primitive {
     }
 
     @Override
-    public Value call(Value[] values) {
+    public Value call(InterpreterContext context, Value[] values) {
         return new LongValue(ooIdGenerator.nextId());
     }
 

@@ -1,5 +1,6 @@
 package interp.primitives;
 
+import interp.InterpreterContext;
 import interp.LongValue;
 import interp.ValueTag;
 import interp.value.ObjectValue;
@@ -10,7 +11,7 @@ import static interp.Interpreter.valTrue;
 
 public class SysGetConfig implements Primitive {
     @Override
-    public Value call(Value[] values) {
+    public Value call(InterpreterContext context, Value[] values) {
         ObjectValue o = new ObjectValue(ValueTag.PAIR_TAG, 3);
 
         o.setField(0, StringValue.ofString("Unix"));

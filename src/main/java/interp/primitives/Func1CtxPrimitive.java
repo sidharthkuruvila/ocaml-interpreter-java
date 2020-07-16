@@ -3,20 +3,20 @@ package interp.primitives;
 import interp.InterpreterContext;
 import interp.value.Value;
 
-import java.util.function.Function;
+import java.util.function.BiFunction;
 
-public class FuncNPrimitive implements Primitive{
+public class Func1CtxPrimitive<T extends Value> implements Primitive {
     private final String name;
-    private final Function<Value[], Value> fn;
+    private final BiFunction<InterpreterContext, T, Value> fn;
 
-    public FuncNPrimitive(String name, Function<Value[], Value> fn) {
+    public Func1CtxPrimitive(String name, BiFunction<InterpreterContext, T, Value> fn) {
         this.name = name;
         this.fn = fn;
     }
 
     @Override
     public Value call(InterpreterContext context, Value[] values) {
-        return fn.apply(values);
+        return fn.apply(context, (T)values[0]);
     }
 
     @Override

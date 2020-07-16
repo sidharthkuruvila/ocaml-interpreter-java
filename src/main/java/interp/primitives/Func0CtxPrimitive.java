@@ -5,18 +5,18 @@ import interp.value.Value;
 
 import java.util.function.Function;
 
-public class FuncNPrimitive implements Primitive{
+public class Func0CtxPrimitive implements Primitive {
     private final String name;
-    private final Function<Value[], Value> fn;
+    private final Function<InterpreterContext, Value> fn;
 
-    public FuncNPrimitive(String name, Function<Value[], Value> fn) {
+    public Func0CtxPrimitive(String name, Function<InterpreterContext, Value> fn) {
         this.name = name;
         this.fn = fn;
     }
 
     @Override
     public Value call(InterpreterContext context, Value[] values) {
-        return fn.apply(values);
+        return fn.apply(context);
     }
 
     @Override

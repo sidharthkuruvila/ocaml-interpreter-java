@@ -1,11 +1,12 @@
 package interp;
 
 import interp.stack.StackPointer;
+import interp.stack.ValueStack;
 import interp.value.Value;
 
 public class CamlState {
     private StackPointer trapSp = null;
-    private boolean backTraceActive;
+    private boolean backTraceActive = true;
     private StackPointer externSp;
     private boolean compareUnordered;
     private Value exceptionBucket;

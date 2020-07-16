@@ -94,7 +94,7 @@ public class Executable {
                     ObjectValue evStart = evLoc.getObjectValueField(LOC_START);
                     ObjectValue evEnd = evLoc.getObjectValueField(LOC_END);
                     int codeOffset = ev.getIntField(EV_POS);
-                    CodePointer codePointer = new CodePointer(codeFragment.code, codeOffset);
+                    CodePointer codePointer = new CodePointer(codeFragment.code, codeOffset/4);
                     String filename = evStart.getStringField(POS_FNAME);
                     String defname = ev.getStringField(EV_DEFNAME);
                     int lineNumber = evStart.getIntField(POS_LNUM);
@@ -106,6 +106,7 @@ public class Executable {
                     debugEvents.add(new DebugEvent(codePointer, paths.get(i), filename, defname, lineNumber, startChar, endChar));
                 }
             }
+            Collections.reverse(debugEvents);
             this.debugEvents = debugEvents;
         } else {
             debugEvents = null;
@@ -165,6 +166,31 @@ public class Executable {
     public static class DebugEvent {
 
         private final CodePointer codePointer;
+
+        public String getPath() {
+            return path;
+        }
+
+        public String getFilename() {
+            return filename;
+        }
+
+        public String getDefname() {
+            return defname;
+        }
+
+        public int getLineNumber() {
+            return lineNumber;
+        }
+
+        public int getStartChar() {
+            return startChar;
+        }
+
+        public int getEndChar() {
+            return endChar;
+        }
+
         private final String path;
         private final String filename;
         private final String defname;
@@ -193,6 +219,10 @@ public class Executable {
                     ", startChar=" + startChar +
                     ", endChar=" + endChar +
                     '}';
+        }
+
+        public CodePointer getCodePointer() {
+            return codePointer;
         }
     }
 }

@@ -20,6 +20,7 @@ public class OutputStreamChannel implements Channel {
     public void writeByte(int b) {
         try {
             os.write(b);
+            os.flush();
         } catch (IOException e)  {
             throw new RuntimeException(e);
         }

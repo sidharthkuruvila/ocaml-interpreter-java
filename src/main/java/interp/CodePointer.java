@@ -37,4 +37,12 @@ public class CodePointer implements Value {
     public int getN(int n) {
         return code.code[n + index];
     }
+
+    @Override
+    public String toString() {
+        return "CodePointer{" +
+                "code=" + "..." +
+                ", index=" + index +
+                '}';
+    }
 }

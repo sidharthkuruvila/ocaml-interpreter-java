@@ -2,6 +2,7 @@ package interp;
 
 import interp.customoperations.CustomOperations;
 import interp.customoperations.CustomOperationsValue;
+import interp.stack.ValueStack;
 import interp.value.ObjectValue;
 import interp.value.Value;
 import org.junit.jupiter.api.Test;

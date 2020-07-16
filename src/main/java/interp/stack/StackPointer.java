@@ -22,6 +22,6 @@ public class StackPointer implements Value {
     }
 
     public Value get() {
-        return stack.stack.get(size);
+        return stack.stack.get(size-1);
     }
 }

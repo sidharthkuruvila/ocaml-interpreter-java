@@ -1,5 +1,6 @@
 package interp.primitives;
 
+import interp.InterpreterContext;
 import interp.LongValue;
 import interp.value.Value;
 import interp.io.ChannelRegistry;
@@ -14,7 +15,7 @@ public class MlOpenDescriptorIn implements Primitive {
     }
 
     @Override
-    public Value call(Value[] values) {
+    public Value call(InterpreterContext context, Value[] values) {
         int fd = ((LongValue)values[0]).getIntValue();
         return channelRegistry.getChannel(fd);
     }

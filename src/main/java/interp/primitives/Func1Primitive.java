@@ -1,5 +1,6 @@
 package interp.primitives;
 
+import interp.InterpreterContext;
 import interp.value.Value;
 
 import java.util.function.Function;
@@ -15,7 +16,7 @@ public class Func1Primitive<T extends Value> implements Primitive{
 
     @SuppressWarnings("unchecked")
     @Override
-    public Value call(Value[] values) {
+    public Value call(InterpreterContext context, Value[] values) {
         return fn.apply((T)values[0]);
     }
 

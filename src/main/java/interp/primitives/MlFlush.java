@@ -1,5 +1,6 @@
 package interp.primitives;
 
+import interp.InterpreterContext;
 import interp.value.Value;
 import interp.customoperations.CustomOperationsValue;
 import interp.io.Channel;
@@ -8,7 +9,7 @@ import static interp.Interpreter.valUnit;
 
 public class MlFlush implements Primitive {
     @Override
-    public Value call(Value[] values) {
+    public Value call(InterpreterContext context, Value[] values) {
         try {
             CustomOperationsValue v = (CustomOperationsValue) values[0];
             Channel ch = (Channel) v.getData();

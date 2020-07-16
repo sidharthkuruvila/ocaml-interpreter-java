@@ -1,5 +1,6 @@
 package interp.primitives;
 
+import interp.InterpreterContext;
 import interp.NamedValues;
 import interp.value.StringValue;
 import interp.value.Value;
@@ -15,7 +16,7 @@ public class RegisterNamedValuePrimitive implements Primitive {
     }
 
     @Override
-    public Value call(Value[] values) {
+    public Value call(InterpreterContext context, Value[] values) {
         String name = ((StringValue)values[0]).getString();
         Value value = values[1];
 

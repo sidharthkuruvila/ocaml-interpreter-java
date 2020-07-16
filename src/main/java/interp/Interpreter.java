@@ -10,6 +10,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -38,6 +39,8 @@ class InfixOffsetValue implements Value {
 
 public class Interpreter {
     private static final Logger logger = Logger.getLogger(Interpreter.class.getName());
+
+    Backtrace backtrace = new Backtrace();
 
     static {
         logger.setLevel(Level.FINE);
@@ -113,7 +116,6 @@ public class Interpreter {
     }
 
     public Value interpret(Code code) {
-        List<Instructions> instructionTrace = new ArrayList<>();
         ValueStack stack = new ValueStack();
         stack.push(valUnit);
         camlState.setTrapSp(stack.pointer());
@@ -125,6 +127,7 @@ public class Interpreter {
         Instructions[] instructions = Instructions.values();
 
         Value env = new Atom(ValueTag.PAIR_TAG);
+        InterpreterContext context = new InterpreterContext(stack, debugEvents);
 
         try (PrintWriter pw = new PrintWriter(new FileWriter("java_out.txt"))) {
 
@@ -135,7 +138,7 @@ public class Interpreter {
 
                     pc = pc.inc();
                     pw.println(currInstr + ", " + pc.index);
-//                    instructionTrace.add(currInstr);
+                    pw.flush();
                     switch (currInstr) {
                         case ACC0:
                             accu = stack.get(0);
@@ -767,7 +770,7 @@ public class Interpreter {
                                     checkTrapBarrier();
                                     if (camlState.getBackTraceActive()) {
                                         stack.push(pc.dec());
-                                        stashBacktrace(accu, stack.pointer(), 1);
+                                        stashBacktrace(context, accu, stack.pointer(), true);
                                     }
                                     break;
                                 }
@@ -775,8 +778,9 @@ public class Interpreter {
                                 case RAISE: {
                                     checkTrapBarrier();
                                     if (camlState.getBackTraceActive()) {
+                                        context.setBacktrace(new ArrayList<>());
                                         stack.push(pc.dec());
-                                        stashBacktrace(accu, stack.pointer(), 0);
+                                        stashBacktrace(context, accu, stack.pointer(), false);
                                     }
                                     break;
                                 }
@@ -818,7 +822,7 @@ public class Interpreter {
                             stack.push(env);
                             camlState.setExternSp(stack.pointer());
 
-                            accu = primitives.get(pc.get()).call(new Value[]{accu});
+                            accu = primitives.get(pc.get()).call(context, new Value[]{accu});
 
                             //Restore_after_c_call
                             stack.reset(camlState.getExternSp());
@@ -834,7 +838,7 @@ public class Interpreter {
                             stack.push(env);
                             camlState.setExternSp(stack.pointer());
 
-                            accu = primitives.get(pc.get()).call(new Value[]{accu, stack.get(2)});
+                            accu = primitives.get(pc.get()).call(context, new Value[]{accu, stack.get(2)});
 
                             //Restore_after_c_call
                             stack.reset(camlState.getExternSp());
@@ -850,7 +854,7 @@ public class Interpreter {
                             stack.push(env);
                             camlState.setExternSp(stack.pointer());
 
-                            accu = primitives.get(pc.get()).call(new Value[]{accu, stack.get(2), stack.get(3)});
+                            accu = primitives.get(pc.get()).call(context, new Value[]{accu, stack.get(2), stack.get(3)});
 
                             //Restore_after_c_call
                             stack.reset(camlState.getExternSp());
@@ -866,7 +870,7 @@ public class Interpreter {
                             stack.push(env);
                             camlState.setExternSp(stack.pointer());
 
-                            accu = primitives.get(pc.get()).call(new Value[]{accu, stack.get(2), stack.get(3), stack.get(4)});
+                            accu = primitives.get(pc.get()).call(context, new Value[]{accu, stack.get(2), stack.get(3), stack.get(4)});
 
                             //Restore_after_c_call
                             stack.reset(camlState.getExternSp());
@@ -882,7 +886,7 @@ public class Interpreter {
                             stack.push(env);
                             camlState.setExternSp(stack.pointer());
 
-                            accu = primitives.get(pc.get()).call(new Value[]{accu, stack.get(2), stack.get(3), stack.get(4), stack.get(5)});
+                            accu = primitives.get(pc.get()).call(context, new Value[]{accu, stack.get(2), stack.get(3), stack.get(4), stack.get(5)});
 
                             //Restore_after_c_call
                             stack.reset(camlState.getExternSp());
@@ -906,7 +910,7 @@ public class Interpreter {
                                 args[i + 1] = stack.get(2 + i);
                             }
 
-                            accu = primitives.get(pc.get()).call(new Value[]{accu, stack.get(2), stack.get(3), stack.get(4), stack.get(5)});
+                            accu = primitives.get(pc.get()).call(context, new Value[]{accu, stack.get(2), stack.get(3), stack.get(4), stack.get(5)});
 
                             //Restore_after_c_call
                             stack.reset(camlState.getExternSp());
@@ -1173,7 +1177,7 @@ public class Interpreter {
                     camlState.setExceptionBucket(v);
                     stack.reset(camlState.getExternSp());
                     accu = v;
-                    stashBacktrace(v, camlState.getExternSp(), 0);
+                    stashBacktrace(context, v, camlState.getExternSp(), false);
                     raiseNoTrace = true;
 
                 }
@@ -1219,8 +1223,11 @@ public class Interpreter {
         //Not implemented yet
     }
 
-    private void stashBacktrace(Value accu, StackPointer pointer, int i) {
-        // Not implemented yet
+    private void stashBacktrace(InterpreterContext context, Value exception, StackPointer pointer, boolean reraise) {
+        if(!reraise) {
+            context.setLastException(exception);
+        }
+        context.addFramePointers(context.getBacktrace());
     }
 
     private void checkTrapBarrier() {

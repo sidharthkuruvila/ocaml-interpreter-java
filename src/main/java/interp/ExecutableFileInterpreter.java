@@ -5,17 +5,20 @@ import interp.ints.Int64CustomOperations;
 import interp.ints.NativeIntCustomOperations;
 import interp.io.ChannelRegistry;
 import interp.primitives.*;
+import interp.stack.ValueStack;
 import interp.value.*;
 
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
+import java.util.Stack;
 
 import static interp.Interpreter.valTrue;
 
 public class ExecutableFileInterpreter {
     private final ExecutableBuilder exb;
     private final PrimitiveRegistry primitiveRegistry;
+    private final ValueStack stack = new ValueStack();
     private final CamlState camlState = new CamlState();
 
     public ExecutableFileInterpreter() throws IOException {
@@ -32,6 +35,7 @@ public class ExecutableFileInterpreter {
         exb = new ExecutableBuilder(codeFragmentTable, intern);
         primitiveRegistry = new PrimitiveRegistry();
         Compare compare = new Compare(camlState);
+        Backtrace backtrace = new Backtrace();
 
         NamedValues namedValues = new NamedValues();
 
@@ -133,7 +137,7 @@ public class ExecutableFileInterpreter {
         primitiveRegistry.unimplemented("caml_channel_descriptor");
         primitiveRegistry.unimplemented("caml_classify_float");
         primitiveRegistry.unimplemented("caml_compare");
-        primitiveRegistry.unimplemented("caml_convert_raw_backtrace");
+        primitiveRegistry.addFunc1Ctx("caml_convert_raw_backtrace", backtrace::convertRawBacktrace);
         primitiveRegistry.unimplemented("caml_convert_raw_backtrace_slot");
         primitiveRegistry.unimplemented("caml_copysign_float");
         primitiveRegistry.addFunc1("caml_cos_float", DoubleValue::cos);
@@ -207,7 +211,7 @@ public class ExecutableFileInterpreter {
         primitiveRegistry.unimplemented("caml_get_current_callstack");
         primitiveRegistry.unimplemented("caml_get_current_environment");
         primitiveRegistry.unimplemented("caml_get_exception_backtrace");
-        primitiveRegistry.unimplemented("caml_get_exception_raw_backtrace");
+        primitiveRegistry.addFunc0Ctx("caml_get_exception_raw_backtrace", backtrace::getExceptionRawBacktrace);
         primitiveRegistry.unimplemented("caml_get_global_data");
         primitiveRegistry.unimplemented("caml_get_major_bucket");
         primitiveRegistry.unimplemented("caml_get_major_credit");
@@ -393,7 +397,7 @@ public class ExecutableFileInterpreter {
         primitiveRegistry.unimplemented("caml_raw_backtrace_next_slot");
         primitiveRegistry.unimplemented("caml_raw_backtrace_slot");
         primitiveRegistry.unimplemented("caml_realloc_global");
-        primitiveRegistry.unimplemented("caml_record_backtrace");
+        primitiveRegistry.addFunc1("caml_record_backtrace", backtrace::recordBacktrace);
         primitiveRegistry.unimplemented("caml_register_channel_for_spacetime");
         primitiveRegistry.addPrimitive(new RegisterNamedValuePrimitive(namedValues));
         primitiveRegistry.unimplemented("caml_reify_bytecode");

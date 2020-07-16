@@ -1,5 +1,6 @@
 package interp.primitives;
 
+import interp.InterpreterContext;
 import interp.value.Value;
 import interp.io.ChannelRegistry;
 
@@ -11,7 +12,7 @@ public class MlOutChannelsList implements Primitive {
     }
 
     @Override
-    public Value call(Value[] values) {
+    public Value call(InterpreterContext context, Value[] values) {
         return channelRegistry.outChannelList();
     }
 

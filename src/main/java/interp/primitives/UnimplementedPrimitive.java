@@ -1,5 +1,6 @@
 package interp.primitives;
 
+import interp.InterpreterContext;
 import interp.value.Value;
 
 import java.util.Arrays;
@@ -15,7 +16,7 @@ public class UnimplementedPrimitive implements Primitive {
     }
 
     @Override
-    public Value call(Value[] values) {
+    public Value call(InterpreterContext context, Value[] values) {
         throw new RuntimeException(String.format("Not yet implemented: %s(%s)", name, Arrays.asList(values)));
     }
 

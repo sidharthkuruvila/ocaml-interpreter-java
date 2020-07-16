@@ -1,11 +1,12 @@
 package interp.primitives;
 
+import interp.InterpreterContext;
 import interp.LongValue;
 import interp.value.Value;
 
 public class SysConstBackendType implements Primitive{
     @Override
-    public Value call(Value[] values) {
+    public Value call(InterpreterContext context, Value[] values) {
         return new LongValue(1);
     }
 

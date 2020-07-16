@@ -203,7 +203,12 @@ let test_mutual_recursion () =
   print_endline (string_of_bool (is_odd 10));
   print_endline (string_of_bool (is_odd 9))
 
-
+let test_backtrace () =
+ Printexc.record_backtrace true;
+ try
+   failwith "Some failure"
+ with Failure msg ->
+   Printexc.print_backtrace stdout
 
 let test_lexing () =
   let lexbuf = Lexing.from_string "2*(3+4)\n" in
@@ -218,6 +223,7 @@ let test_lexing () =
 
 (*hello world*)
 let _ = begin
+  test_backtrace ();
   test_lexing ();
   test_mutual_recursion ();
   test_weak ();
