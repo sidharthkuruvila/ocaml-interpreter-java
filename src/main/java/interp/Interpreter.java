@@ -6,14 +6,12 @@ import interp.stack.StackPointer;
 import interp.stack.ValueStack;
 import interp.value.*;
 
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import static interp.value.Value.booleanValue;
 
@@ -37,10 +35,62 @@ class InfixOffsetValue implements Value {
 }
 
 
+class InterpreterHelper {
+    private final InterpreterContext context;
+    public InterpreterHelper(InterpreterContext context) {
+
+        this.context = context;
+    }
+
+    public void printCurrentStack(PrintStream ps, CodePointer pc) {
+        List<CodePointer> stack = context.getCurrentStack();
+        List<InterpreterContext.StackFrame> stackFrames =
+                stack.stream().map(context::getStackFrame)
+                        .collect(Collectors.toList());
+        String formatString = "%s %s in file \"%s\", line %d, characters %d-%d";
+        String topMessage = "Execution at";
+        String rowMessage = "Called from";
+        {
+            InterpreterContext.StackFrame stackFrame =
+                    context.getStackFrame(pc);
+            Executable.DebugEvent debugEvent = stackFrame.getDebugEvent();
+            ps.println(String.format(formatString, topMessage,
+                    debugEvent.getDefname(),
+                    debugEvent.getFilename(),
+                    debugEvent.getLineNumber(),
+                    debugEvent.getStartChar(),
+                    debugEvent.getEndChar()));
+        }
+        for (InterpreterContext.StackFrame stackFrame : stackFrames) {
+            Executable.DebugEvent debugEvent = stackFrame.getDebugEvent();
+            ps.println(String.format(formatString, rowMessage,
+                    debugEvent.getDefname(),
+                    debugEvent.getFilename(),
+                    debugEvent.getLineNumber(),
+                    debugEvent.getStartChar(),
+                    debugEvent.getEndChar()));
+        }
+    }
+
+    public void printCurrentStackToStdErr(CodePointer pc) {
+        printCurrentStack(System.err, pc);
+    }
+
+    public String currentStackToString(CodePointer pc) {
+        try (
+                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                PrintStream pw = new PrintStream(bos)
+        ) {
+            printCurrentStack(pw, pc);
+            return new String(bos.toByteArray());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+}
+
 public class Interpreter {
     private static final Logger logger = Logger.getLogger(Interpreter.class.getName());
-
-    Backtrace backtrace = new Backtrace();
 
     static {
         logger.setLevel(Level.FINE);
@@ -128,6 +178,8 @@ public class Interpreter {
 
         Value env = new Atom(ValueTag.PAIR_TAG);
         InterpreterContext context = new InterpreterContext(stack, debugEvents);
+
+        InterpreterHelper helper = new InterpreterHelper(context);
 
         try (PrintWriter pw = new PrintWriter(new FileWriter("java_out.txt"))) {
 
@@ -1209,10 +1261,10 @@ public class Interpreter {
     }
 
     private static CodePointer getCodePonter(Value accu) {
-        if(accu instanceof ObjectValue) {
-            return (CodePointer)((ObjectValue) accu).getField(0);
+        if (accu instanceof ObjectValue) {
+            return (CodePointer) ((ObjectValue) accu).getField(0);
         }
-        return (CodePointer)accu;
+        return (CodePointer) accu;
     }
 
     private void raiseZeroDivide() {
@@ -1224,7 +1276,7 @@ public class Interpreter {
     }
 
     private void stashBacktrace(InterpreterContext context, Value exception, StackPointer pointer, boolean reraise) {
-        if(!reraise) {
+        if (!reraise) {
             context.setLastException(exception);
         }
         context.addFramePointers(context.getBacktrace());

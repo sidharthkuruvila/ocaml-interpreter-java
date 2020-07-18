@@ -44,6 +44,24 @@ public class InterpreterContext {
         return backtrace;
     }
 
+    StackFrame getStackFrame(CodePointer framePointer) {
+        List<Executable.DebugEvent> debugEvents  = getDebugEvents();
+        Executable.DebugEvent previousEvent = debugEvents.get(0);
+        int previousIndex = debugEvents.get(0).getCodePointer().index;
+        int needleIndex = framePointer.index;
+        StackFrame stackFrame = null;
+
+        for(Executable.DebugEvent debugEvent : debugEvents) {
+            int nextIndex = debugEvent.getCodePointer().index;
+            if(needleIndex<=nextIndex && previousIndex<=needleIndex){
+                stackFrame = new StackFrame(framePointer, previousEvent);
+            }
+            previousEvent = debugEvent;
+            previousIndex = nextIndex;
+        }
+        return stackFrame;
+    }
+
     public static class StackFrame {
 
         private final CodePointer framePointer;
@@ -64,38 +82,6 @@ public class InterpreterContext {
         }
     }
 
-
-    public List<StackFrame> getStackFrames() {
-        List<StackFrame> stackFrames = new ArrayList<>();
-        List<CodePointer> framePointers = addFramePointers(new ArrayList<>());
-
-        for(CodePointer framePointer : framePointers) {
-
-            StackFrame stackFrame = getStackFrame(framePointer);
-
-            if(stackFrame != null) {
-                stackFrames.add(stackFrame);
-            }
-
-        }
-        return stackFrames;
-    }
-
-    private StackFrame getStackFrame(CodePointer framePointer) {
-        Executable.DebugEvent previousEvent = debugEvents.get(0);
-        int previousIndex = debugEvents.get(0).getCodePointer().index;
-        int needleIndex = framePointer.index;
-        StackFrame stackFrame = null;
-        for(Executable.DebugEvent debugEvent : debugEvents) {
-            int nextIndex = debugEvent.getCodePointer().index;
-            if(needleIndex<=nextIndex && previousIndex<=needleIndex){
-                stackFrame = new StackFrame(framePointer, previousEvent);
-            }
-            previousEvent = debugEvent;
-            previousIndex = nextIndex;
-        } return stackFrame;
-    }
-
     public List<CodePointer> addFramePointers(List<CodePointer> framePointers) {
         StackPointer sp = stack.pointer();
         while(sp.getSize() > 0) {
@@ -104,6 +90,23 @@ public class InterpreterContext {
                 if(sp.getSize() > 1
                         && (sp.incN(-1).get() instanceof StackPointer)) {
                     break;
+                }
+                framePointers.add((CodePointer)v);
+            }
+            sp = sp.incN(-1);
+        }
+        return framePointers;
+    }
+
+    public List<CodePointer> getCurrentStack() {
+        List<CodePointer> framePointers = new ArrayList<>();
+        StackPointer sp = stack.pointer();
+        while(sp.getSize() > 0) {
+            Value v = sp.get();
+            if(v instanceof CodePointer) {
+                if(sp.getSize() > 1
+                        && (sp.incN(-1).get() instanceof StackPointer)) {
+                    continue;
                 }
                 framePointers.add((CodePointer)v);
             }

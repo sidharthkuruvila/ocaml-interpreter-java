@@ -11,7 +11,6 @@ import interp.value.*;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
-import java.util.Stack;
 
 import static interp.Interpreter.valTrue;
 

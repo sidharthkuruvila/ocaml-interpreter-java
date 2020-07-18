@@ -444,7 +444,6 @@ public class Intern {
                         case CODE_CUSTOM:
                         case CODE_CUSTOM_LEN:
                         case CODE_CUSTOM_FIXED:
-//                            System.out.println("CUSTOM_CODE");
                             String ident = readCString(dis);
                             CustomOperations ops = customOperationsList.findCustomOperations(ident);
 

@@ -1,6 +1,5 @@
 package interp;
 
-import interp.stack.ValueStack;
 import interp.value.ObjectValue;
 import interp.value.StringValue;
 import interp.value.Value;
@@ -41,7 +40,7 @@ public class Backtrace {
     }
 
     private ObjectValue getBacktraceItem(InterpreterContext context, CodePointer codePointer, boolean isRaise) {
-        InterpreterContext.StackFrame stackFrame = getStackFrame(context, codePointer);
+        InterpreterContext.StackFrame stackFrame = context.getStackFrame(codePointer);
         Executable.DebugEvent debugEvent = stackFrame.getDebugEvent();
         ObjectValue debugInfo = new ObjectValue(0, 7);
         debugInfo.setField(0, booleanValue(isRaise));
@@ -52,24 +51,6 @@ public class Backtrace {
         debugInfo.setField(5, valFalse);
         debugInfo.setField(6, StringValue.ofString(debugEvent.getDefname()));
         return debugInfo;
-    }
-
-    private InterpreterContext.StackFrame getStackFrame(InterpreterContext context, CodePointer framePointer) {
-        List<Executable.DebugEvent> debugEvents  = context.getDebugEvents();
-        Executable.DebugEvent previousEvent = debugEvents.get(0);
-        int previousIndex = debugEvents.get(0).getCodePointer().index;
-        int needleIndex = framePointer.index;
-        InterpreterContext.StackFrame stackFrame = null;
-
-        for(Executable.DebugEvent debugEvent : debugEvents) {
-            int nextIndex = debugEvent.getCodePointer().index;
-            if(needleIndex<=nextIndex && previousIndex<=needleIndex){
-                stackFrame = new InterpreterContext.StackFrame(framePointer, previousEvent);
-            }
-            previousEvent = debugEvent;
-            previousIndex = nextIndex;
-        }
-        return stackFrame;
     }
 
     public Value rawBacktraceSlot(ObjectValue objectValue, LongValue indexValue) {
