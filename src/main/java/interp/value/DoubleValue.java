@@ -26,6 +26,7 @@ public class DoubleValue implements Value {
         String formatString = formatStringValue.getString();
         double n = unwrap(nValue);
         String formatted = String.format(formatString, n);
+        formatted = formatted.replaceAll("[.]0+$", "");
         return StringValue.ofString(formatted);
     }
 
