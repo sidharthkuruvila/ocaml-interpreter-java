@@ -32,20 +32,26 @@ public class Backtrace {
     public Value convertRawBacktrace(InterpreterContext context, ObjectValue objectValue) {
         ObjectValue array = new ObjectValue(0, objectValue.getSize());
         for(int i = 0; i < objectValue.getSize(); i++) {
-            ObjectValue debugInfo = new ObjectValue(0, 7);
+            boolean isRaise = i == 0;
             CodePointer codePointer = (CodePointer)objectValue.getField(i);
-            InterpreterContext.StackFrame stackFrame = getStackFrame(context, codePointer);
-            Executable.DebugEvent debugEvent = stackFrame.getDebugEvent();
-            debugInfo.setField(0, booleanValue(i == 0));
-            debugInfo.setField(1, StringValue.ofString(debugEvent.getFilename()));
-            debugInfo.setField(2, LongValue.wrap(debugEvent.getLineNumber()));
-            debugInfo.setField(3, LongValue.wrap(debugEvent.getStartChar()));
-            debugInfo.setField(4, LongValue.wrap(debugEvent.getEndChar()));
-            debugInfo.setField(5, valFalse);
-            debugInfo.setField(6, StringValue.ofString(debugEvent.getDefname()));
+            ObjectValue debugInfo = getBacktraceItem(context, codePointer, isRaise);
             array.setField(i, debugInfo);
         }
         return array;
+    }
+
+    private ObjectValue getBacktraceItem(InterpreterContext context, CodePointer codePointer, boolean isRaise) {
+        InterpreterContext.StackFrame stackFrame = getStackFrame(context, codePointer);
+        Executable.DebugEvent debugEvent = stackFrame.getDebugEvent();
+        ObjectValue debugInfo = new ObjectValue(0, 7);
+        debugInfo.setField(0, booleanValue(isRaise));
+        debugInfo.setField(1, StringValue.ofString(debugEvent.getFilename()));
+        debugInfo.setField(2, LongValue.wrap(debugEvent.getLineNumber()));
+        debugInfo.setField(3, LongValue.wrap(debugEvent.getStartChar()));
+        debugInfo.setField(4, LongValue.wrap(debugEvent.getEndChar()));
+        debugInfo.setField(5, valFalse);
+        debugInfo.setField(6, StringValue.ofString(debugEvent.getDefname()));
+        return debugInfo;
     }
 
     private InterpreterContext.StackFrame getStackFrame(InterpreterContext context, CodePointer framePointer) {
@@ -64,5 +70,19 @@ public class Backtrace {
             previousIndex = nextIndex;
         }
         return stackFrame;
+    }
+
+    public Value rawBacktraceSlot(ObjectValue objectValue, LongValue indexValue) {
+        int index = LongValue.unwrapInt(indexValue);
+        if(index >= objectValue.getSize()){
+            Fail.caml_invalid_argument("Printexc.get_raw_backtrace_slot: \n" +
+                    "index out of bounds");
+        }
+        CodePointer stackFrame = (CodePointer)objectValue.getField(index);
+        return  stackFrame;
+    }
+
+    public Value convertRawBacktraceSlot(InterpreterContext context, CodePointer codePointer) {
+        return getBacktraceItem(context, codePointer, true);
     }
 }

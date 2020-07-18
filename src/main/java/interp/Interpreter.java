@@ -691,7 +691,7 @@ public class Interpreter {
                             stack.popNIgnore(1);
                             continue;
                         case SETBYTESCHAR:
-                            ((StringValue) accu).set((int) ((LongValue) stack.get(0)).getValue(), (int) ((LongValue) stack.get(0)).getValue());
+                            ((StringValue) accu).set((int) ((LongValue) stack.get(0)).getValue(), (int) ((LongValue) stack.get(1)).getValue());
                             stack.popNIgnore(2);
                             accu = valUnit;
                             continue;

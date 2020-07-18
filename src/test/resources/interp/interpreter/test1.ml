@@ -1,3 +1,4 @@
+
 let make_string_from_array ~f ~sep array =
   let e = ref (f (Array.get array 0)) in
   for i = 1 to (Array.length array) - 1 do
@@ -186,6 +187,7 @@ let option_or_else ~default v =
   | None -> default
 
 let test_weak () =
+  print_endline "test_weak";
   let default = option_or_else ~default:"default" in
   print_endline "test_weak";
   let a = Weak.create 3 in
@@ -196,6 +198,7 @@ let test_weak () =
   print_endline (default (Weak.get a 2))
 
 let test_mutual_recursion () =
+  print_endline "test_mutual_recursion";
   let rec is_odd x =
     if x = 0 then false else is_even (x - 1)
   and is_even x =
@@ -203,14 +206,8 @@ let test_mutual_recursion () =
   print_endline (string_of_bool (is_odd 10));
   print_endline (string_of_bool (is_odd 9))
 
-let test_backtrace () =
- Printexc.record_backtrace true;
- try
-   failwith "Some failure"
- with Failure msg ->
-   Printexc.print_backtrace stdout
-
 let test_lexing () =
+  print_endline "test_lexing";
   let lexbuf = Lexing.from_string "2*(3+4)\n" in
   try
     while true do
@@ -221,8 +218,89 @@ let test_lexing () =
     print_endline ("Final message:" ^ msg)
 
 
+let print_backtrace_slot slot =
+  let open Printexc in
+  let info pos is_raise =
+    if is_raise then
+      if pos = 0 then "Raised at" else "Re-raised at"
+    else
+      if pos = 0 then "Raised by primitive operation at" else "Called from" in
+  let is_raise = Printexc.Slot.is_raise slot in
+  let loc = Option.get (Printexc.Slot.location slot) in
+  let filename = loc.filename in
+  let line_number = loc.line_number in
+  let start_char = loc.start_char in
+  let end_char = loc.end_char in
+  let is_inline = Slot.is_inline slot in
+  print_endline (Printf.sprintf "%s %s in file \"%s\"%s, line %d, characters %d-%d"
+    (info 0 is_raise) "Stdlib.failwith" filename (if is_inline then " (inlined)" else "") line_number start_char end_char);
+  print_endline ""
+
+let test_backtrace () =
+ print_endline "test_backtrace";
+ Printexc.record_backtrace true;
+ try
+   failwith "Some failure"
+ with Failure msg -> begin
+   let raw_backtrace = Printexc.get_raw_backtrace () in
+   let raw_slot = Printexc.get_raw_backtrace_slot raw_backtrace 0 in
+   let slot = Printexc.convert_raw_backtrace_slot raw_slot in
+   print_endline (match Printexc.Slot.format 0 slot with
+   | Some s -> "Some(" ^ s ^ ")"
+   | None -> "None");
+   print_endline (match Printexc.Slot.format 1 slot with
+      | Some s -> "Some(" ^ s ^ ")"
+      | None -> "None");
+   print_endline "xxxxx";
+   print_backtrace_slot slot;
+   print_endline "yyyyy";
+   Printexc.print_backtrace stdout
+end
+
+let test_int () =
+  print_endline "test_int";
+  let a = 23 lsl 2 in
+  print_endline (string_of_int a)
+
+
+let test_printf () =
+  print_endline "test_printf";
+  let info pos is_raise =
+    if is_raise then
+      if pos = 0 then "Raised at" else "Re-raised at"
+    else
+      if pos = 0 then "Raised by primitive operation at" else "Called from" in
+  print_endline (Printf.sprintf "%s %s in file \"%s\"%s, line %d, characters %d-%d"
+    (info 0 true) "Stdlib.failwith" "stdlib.ml" "" 29 17 33);
+  Printf.printf "%s %s in file \"%s\"%s, line %d, characters %d-%d"
+    (info 0 true) "Stdlib.failwith" "stdlib.ml" "" 29 17 33;
+  print_endline ""
+
+let test_buffer () =
+  print_endline "test_buffer";
+  let buf = Buffer.create 64 in
+  Buffer.add_char buf 'a';
+  Buffer.add_char buf 'b';
+  Buffer.add_string buf "cat";
+  Buffer.add_string buf "dog";
+  Buffer.add_char buf 'b';
+  Buffer.add_uint8 buf 75;
+  let s = Buffer.contents buf in
+  print_endline ("x" ^ s ^ "x")
+
+
+let test_bytes () =
+  print_endline "test_bytes";
+  let s = Bytes.of_string "abc" in
+  Bytes.unsafe_set s 0 'X';
+  print_endline (Bytes.to_string s)
+
 (*hello world*)
 let _ = begin
+  test_bytes ();
+  test_buffer ();
+  test_printf ();
+  test_int ();
   test_backtrace ();
   test_lexing ();
   test_mutual_recursion ();

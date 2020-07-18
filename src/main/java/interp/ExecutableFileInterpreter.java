@@ -138,7 +138,7 @@ public class ExecutableFileInterpreter {
         primitiveRegistry.unimplemented("caml_classify_float");
         primitiveRegistry.unimplemented("caml_compare");
         primitiveRegistry.addFunc1Ctx("caml_convert_raw_backtrace", backtrace::convertRawBacktrace);
-        primitiveRegistry.unimplemented("caml_convert_raw_backtrace_slot");
+        primitiveRegistry.addFunc1Ctx("caml_convert_raw_backtrace_slot", backtrace::convertRawBacktraceSlot);
         primitiveRegistry.unimplemented("caml_copysign_float");
         primitiveRegistry.addFunc1("caml_cos_float", DoubleValue::cos);
         primitiveRegistry.addFunc1("caml_cosh_float", DoubleValue::cosh);
@@ -395,7 +395,7 @@ public class ExecutableFileInterpreter {
         primitiveRegistry.unimplemented("caml_power_float");
         primitiveRegistry.unimplemented("caml_raw_backtrace_length");
         primitiveRegistry.unimplemented("caml_raw_backtrace_next_slot");
-        primitiveRegistry.unimplemented("caml_raw_backtrace_slot");
+        primitiveRegistry.addFunc2("caml_raw_backtrace_slot", backtrace::rawBacktraceSlot);
         primitiveRegistry.unimplemented("caml_realloc_global");
         primitiveRegistry.addFunc1("caml_record_backtrace", backtrace::recordBacktrace);
         primitiveRegistry.unimplemented("caml_register_channel_for_spacetime");
