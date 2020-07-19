@@ -36,6 +36,10 @@ class InfixOffsetValue implements Value {
 
 
 class InterpreterHelper {
+
+    String formatString = "%s %s in file \"%s\", line %d, characters %d-%d";
+    String topMessage = "Execution at";
+    String rowMessage = "Called from";
     private final InterpreterContext context;
     public InterpreterHelper(InterpreterContext context) {
 
@@ -44,12 +48,7 @@ class InterpreterHelper {
 
     public void printCurrentStack(PrintStream ps, CodePointer pc) {
         List<CodePointer> stack = context.getCurrentStack();
-        List<InterpreterContext.StackFrame> stackFrames =
-                stack.stream().map(context::getStackFrame)
-                        .collect(Collectors.toList());
-        String formatString = "%s %s in file \"%s\", line %d, characters %d-%d";
-        String topMessage = "Execution at";
-        String rowMessage = "Called from";
+
         {
             InterpreterContext.StackFrame stackFrame =
                     context.getStackFrame(pc);
@@ -61,6 +60,14 @@ class InterpreterHelper {
                     debugEvent.getStartChar(),
                     debugEvent.getEndChar()));
         }
+
+        printCodePointers(ps, stack);
+    }
+
+    private void printCodePointers(PrintStream ps, List<CodePointer> stack) {
+        List<InterpreterContext.StackFrame> stackFrames =
+                stack.stream().map(context::getStackFrame)
+                        .collect(Collectors.toList());
         for (InterpreterContext.StackFrame stackFrame : stackFrames) {
             Executable.DebugEvent debugEvent = stackFrame.getDebugEvent();
             ps.println(String.format(formatString, rowMessage,
@@ -82,6 +89,18 @@ class InterpreterHelper {
                 PrintStream pw = new PrintStream(bos)
         ) {
             printCurrentStack(pw, pc);
+            return new String(bos.toByteArray());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public String codePointersToString(List<CodePointer> stack) {
+        try (
+                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                PrintStream pw = new PrintStream(bos)
+        ) {
+            printCodePointers(pw, stack);
             return new String(bos.toByteArray());
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -180,7 +199,7 @@ public class Interpreter {
         InterpreterContext context = new InterpreterContext(stack, debugEvents);
 
         InterpreterHelper helper = new InterpreterHelper(context);
-
+        int instructionCount = 0;
         try (PrintWriter pw = new PrintWriter(new FileWriter("java_out.txt"))) {
 
             while (true) {
@@ -189,6 +208,7 @@ public class Interpreter {
                     Instructions currInstr = instructions[pc.get()];
 
                     pc = pc.inc();
+                    instructionCount+=1;
                     pw.println(currInstr + ", " + pc.index);
                     pw.flush();
                     switch (currInstr) {

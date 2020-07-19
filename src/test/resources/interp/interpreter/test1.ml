@@ -6,6 +6,16 @@ let make_string_from_array ~f ~sep array =
   done;
   !e
 
+let opt_map ~f o =
+  match o with
+  | Some v -> Some (f v)
+  | None -> None
+
+let opt_default ~v o =
+  match o with
+  | Some v -> v
+  | None -> v
+
 let test1 _ = print_endline "Hello World"
 let test2 _ =
   let a = 1 in
@@ -208,15 +218,23 @@ let test_mutual_recursion () =
 
 let test_lexing () =
   print_endline "test_lexing";
-  let lexbuf = Lexing.from_string "2*(3+4)\n" in
+  let lexbuf = Lexing.from_string "2*(3+4)/2" in
   try
     while true do
       let t = Test_lex.token lexbuf in
-      print_endline (Test_lex.repr t)
+      print_endline (Test_lex.repr t);
+      if t = Test_parser.EOF then failwith "fail"
     done
   with Failure msg ->
     print_endline ("Final message:" ^ msg)
 
+let test_parsing () =
+  let lexbuf = Lexing.from_string "2*(3+4)/2" in
+  let res = Test_parser.prog Test_lex.token lexbuf in
+  let v = res
+    |> opt_map ~f:(fun n -> "Num(" ^ (string_of_int n) ^ ")")
+    |> opt_default ~v:"None" in
+  print_endline v
 
 let print_backtrace_slot slot =
   let open Printexc in
@@ -295,16 +313,24 @@ let test_bytes () =
   Bytes.unsafe_set s 0 'X';
   print_endline (Bytes.to_string s)
 
+let test_assert () =
+  print_endline "test_assert";
+  try
+    assert false
+  with Assert_failure _ -> print_endline "caught assert"
+
 
 (*hello world*)
 
 let _ = begin
+  test_lexing ();
+  test_parsing ();
+  test_assert ();
   test_bytes ();
   test_buffer ();
   test_printf ();
   test_int ();
   test_backtrace ();
-  test_lexing ();
   test_mutual_recursion ();
   test_weak ();
   test_hash ();
