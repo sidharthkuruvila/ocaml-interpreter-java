@@ -55,4 +55,8 @@ public interface Value {
     default DoubleArray asDoubleArrayValue(){
         return (DoubleArray) this;
     }
+
+    default int getHeader() {
+        throw new RuntimeException();
+    }
 }

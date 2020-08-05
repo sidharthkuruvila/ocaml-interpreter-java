@@ -57,8 +57,31 @@ public class CompareTest {
         assertEquals(0, compare.compare(c, a, false));
     }
 
+    @Test
+    public void compareObjects(){
+        Compare compare = makeCompare();
+        Value value1 = objectValue(0, longValue(1), objectValue(0, longValue(2)));
+        Value value2 = objectValue(0, longValue(1), objectValue(0, longValue(2)));
+        Value value3 = objectValue(0, longValue(1), objectValue(0, longValue(3)));
+        assertEquals(0, compare.compare(value1, value2, true));
+        assertEquals(-1, compare.compare(value1, value3, true));
+
+    }
+
     private Compare makeCompare() {
         CamlState camlState = new CamlState();
         return new Compare(camlState);
+    }
+
+    private Value objectValue(int tag, Value... values) {
+        ObjectValue objectValue = new ObjectValue(tag, values.length);
+        for(int i = 0; i < values.length; i++){
+            objectValue.setField(i, values[i]);
+        }
+        return objectValue;
+    }
+
+    private Value longValue(long v){
+        return LongValue.wrap(v);
     }
 }

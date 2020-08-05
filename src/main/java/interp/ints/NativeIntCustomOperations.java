@@ -10,6 +10,7 @@ import interp.value.Value;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 public class NativeIntCustomOperations extends CustomOperations<Long> {
 
@@ -36,6 +37,24 @@ public class NativeIntCustomOperations extends CustomOperations<Long> {
         hash = (Long a) -> a.hashCode();
         deserialize = NativeIntCustomOperations::deserialize;
         customFixedLength = 8l;
+        serialize = NativeIntCustomOperations::serialize;
+    }
+
+    static byte[] serialize(Long lv) {
+        long l = lv;
+        if(l >= -(1L << 31) && l < (1L << 31)) {
+            byte[] b = new byte[Integer.BYTES + 1];
+            byte[] vb = Int32CustomOperations.serialize((int)l);
+            b[0] = 1;
+            System.arraycopy(vb, 0, b, 1, Integer.BYTES);
+            return b;
+        } else {
+            byte[] b = new byte[Long.BYTES + 1];
+            byte[] vb = Int64CustomOperations.serialize((long)l);
+            b[0] = 2;
+            System.arraycopy(vb, 0, b, 1, Long.BYTES);
+            return b;
+        }
     }
 
 

@@ -16,96 +16,6 @@ import java.util.*;
 
 import static interp.ValueTag.Object_tag;
 
-//
-//class DataInStream extends DataInputStream {
-//    public DataInStream(ByteBuffer bf){
-//        super(new ByteArrayInputStream(bf.array()));
-//    }
-//}
-
-/*@NotThreadSafe
-class DataInStream {
-    private int index = 0;
-    private int prevIndex = 0;
-
-    private final ByteBuffer bf;
-
-    public DataInStream(ByteBuffer bf){
-        this.bf = bf;
-    }
-
-    public int readUnsignedByte() throws IOException {
-        prevIndex = index;
-        index+=Byte.BYTES;
-        return 0xFF & bf.get(prevIndex);
-    }
-
-    public int readInt() {
-        prevIndex = index;
-        index+= Integer.BYTES;
-        return bf.getInt(prevIndex);
-    }
-
-    public long readLong() {
-        prevIndex = index;
-        index+=Long.BYTES;
-        return bf.getInt(prevIndex);
-    }
-
-    public byte readByte() {
-        prevIndex = index;
-        index+=Byte.BYTES;
-        return bf.get(prevIndex);
-    }
-
-    public short readShort() {
-        prevIndex = index;
-        index+=Short.BYTES;
-        return bf.getShort(prevIndex);
-    }
-
-    public int readChar() {
-        prevIndex = index;
-        index+= Character.BYTES;
-        return bf.getChar(prevIndex);
-    }
-
-    public void read(byte[] bytes) {
-        prevIndex = index;
-        bf.position(prevIndex);
-        index=bytes.length;
-        bf.get(bytes, 0, bytes.length);
-    }
-
-    public float readFloat() {
-        prevIndex = index;
-        index+=Float.BYTES;
-        return bf.getFloat(prevIndex);
-    }
-
-    public double readDouble() {
-        prevIndex = index;
-        index+=Double.BYTES;
-        return bf.getDouble(prevIndex);
-    }
-}*/
-
-class CodeFragment {
-    final Code code;
-    final byte[] digest;
-
-    public CodeFragment(byte[] code) {
-        try {
-            MessageDigest md5 = MessageDigest.getInstance("MD5");
-            byte[] digest = md5.digest(code);
-            this.code = new Code(code);;
-            this.digest = digest;
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
-    }
-}
-
 class CodePointerValue implements Value {
     private final CodeFragment codeFragment;
     private final int offset;
@@ -113,27 +23,6 @@ class CodePointerValue implements Value {
     public CodePointerValue(CodeFragment codeFragment, int offset) {
         this.codeFragment = codeFragment;
         this.offset = offset;
-    }
-}
-
-class CodeFragmentTable {
-    private final List<CodeFragment> codeFragments = new ArrayList<>();
-
-    public CodePointerValue codePointerValue(byte[] digest, int offset) {
-        for(CodeFragment codeFragment : codeFragments) {
-
-            if(Arrays.equals(digest, codeFragment.digest)) {
-                if(offset >= codeFragment.code.code.length) {
-                    throw new RuntimeException("Not enough code to point to");
-                }
-                return new CodePointerValue(codeFragment, offset);
-            }
-        }
-        throw new RuntimeException("Didn't find a matching code fragment");
-    }
-
-    public void add(CodeFragment codeFragment) {
-        codeFragments.add(codeFragment);
     }
 }
 
@@ -184,38 +73,38 @@ class InternStackEntry {
 
 public class Intern {
     static final int sizeOfValue = 8;
-    int magic_number_small = 0x8495A6BE;
-    int magic_number_big = 0x8495A6BF;
+    public static final int magic_number_small = 0x8495A6BE;
+    public static final int magic_number_big = 0x8495A6BF;
 
-    static final int PREFIX_SMALL_BLOCK = 0x80;
-    static final int PREFIX_SMALL_INT = 0x40;
-    static final int PREFIX_SMALL_STRING = 0x20;
-    static final int CODE_INT8 = 0x0;
-    static final int CODE_INT16 = 0x1;
-    static final int CODE_INT32 = 0x2;
-    static final int CODE_INT64 = 0x3;
-    static final int CODE_SHARED8 = 0x4;
-    static final int CODE_SHARED16 = 0x5;
-    static final int CODE_SHARED32 = 0x6;
-    static final int CODE_SHARED64 = 0x14;
-    static final int CODE_BLOCK32 = 0x8;
-    static final int CODE_BLOCK64 = 0x13;
-    static final int CODE_STRING8 = 0x9;
-    static final int CODE_STRING32 = 0xA;
-    static final int CODE_STRING64 = 0x15;
-    static final int CODE_DOUBLE_BIG = 0xB;
-    static final int CODE_DOUBLE_LITTLE = 0xC;
-    static final int CODE_DOUBLE_ARRAY8_BIG = 0xD;
-    static final int CODE_DOUBLE_ARRAY8_LITTLE = 0xE;
-    static final int CODE_DOUBLE_ARRAY32_BIG = 0xF;
-    static final int CODE_DOUBLE_ARRAY32_LITTLE = 0x7;
-    static final int CODE_DOUBLE_ARRAY64_BIG = 0x16;
-    static final int CODE_DOUBLE_ARRAY64_LITTLE = 0x17;
-    static final int CODE_CODEPOINTER = 0x10;
-    static final int CODE_INFIXPOINTER = 0x11;
-    static final int CODE_CUSTOM = 0x12;
-    static final int CODE_CUSTOM_LEN = 0x18;
-    static final int CODE_CUSTOM_FIXED = 0x19;
+    public static final int PREFIX_SMALL_BLOCK = 0x80;
+    public static final int PREFIX_SMALL_INT = 0x40;
+    public static final int PREFIX_SMALL_STRING = 0x20;
+    public static final int CODE_INT8 = 0x0;
+    public static final int CODE_INT16 = 0x1;
+    public static final int CODE_INT32 = 0x2;
+    public static final int CODE_INT64 = 0x3;
+    public static final int CODE_SHARED8 = 0x4;
+    public static final int CODE_SHARED16 = 0x5;
+    public static final int CODE_SHARED32 = 0x6;
+    public static final int CODE_SHARED64 = 0x14;
+    public static final int CODE_BLOCK32 = 0x8;
+    public static final int CODE_BLOCK64 = 0x13;
+    public static final int CODE_STRING8 = 0x9;
+    public static final int CODE_STRING32 = 0xA;
+    public static final int CODE_STRING64 = 0x15;
+    public static final int CODE_DOUBLE_BIG = 0xB;
+    public static final int CODE_DOUBLE_LITTLE = 0xC;
+    public static final int CODE_DOUBLE_ARRAY8_BIG = 0xD;
+    public static final int CODE_DOUBLE_ARRAY8_LITTLE = 0xE;
+    public static final int CODE_DOUBLE_ARRAY32_BIG = 0xF;
+    public static final int CODE_DOUBLE_ARRAY32_LITTLE = 0x7;
+    public static final int CODE_DOUBLE_ARRAY64_BIG = 0x16;
+    public static final int CODE_DOUBLE_ARRAY64_LITTLE = 0x17;
+    public static final int CODE_CODEPOINTER = 0x10;
+    public static final int CODE_INFIXPOINTER = 0x11;
+    public static final int CODE_CUSTOM = 0x12;
+    public static final int CODE_CUSTOM_LEN = 0x18;
+    public static final int CODE_CUSTOM_FIXED = 0x19;
 
 
 
@@ -223,6 +112,7 @@ public class Intern {
     private final CodeFragmentTable codeFragmentTable;
     private final OOIdGenerator ooIdGenerator;
     private final CustomOperationsList customOperationsList;
+    public boolean useOriginalOOId = false;
 
     public Intern(CustomOperationsList customOperationsList, CodeFragmentTable codeFragmentTable, OOIdGenerator ooIdGenerator) {
         this.customOperationsList = customOperationsList;
@@ -274,7 +164,9 @@ public class Intern {
             throw new RuntimeException(String.format("Unrecogonized magic number. %08X", magic));
         }
 
-        return internRec(new ArrayList<>(), dis);
+        List<Value> internObjectTable = new ArrayList<>();
+        Value v = internRec(internObjectTable, dis);
+        return v;
     }
 
 
@@ -316,7 +208,7 @@ public class Intern {
                             Value v2 = internRec(internObjectTable, dis);
                             assert v2 instanceof LongValue;
                             block.setField(0, v1);
-                            block.setField(1, new LongValue(ooIdGenerator.nextId()));
+                            block.setField(1, new LongValue(getNextOOId(v2)));
                             field = 2;
                         } else {
                             field = 0;
@@ -378,7 +270,7 @@ public class Intern {
                                 Value v2 = internRec(internObjectTable, dis);
                                 assert v2 instanceof LongValue;
                                 block.setField(0, v1);
-                                block.setField(1, new LongValue(ooIdGenerator.nextId()));
+                                block.setField(1, new LongValue(getNextOOId(v2)));
                                 field = 2;
                             } else {
                                 field = 0;
@@ -432,6 +324,7 @@ public class Intern {
                         case CODE_CODEPOINTER: {
                             int ofs = dis.readInt();
                             byte[] digest = new byte[16];
+                            dis.read(digest);
                             next = codeFragmentTable.codePointerValue(digest, ofs);
                             break;
                             //Missing logic to point to Debugger.function_placeholder when
@@ -481,6 +374,14 @@ public class Intern {
         }
     }
 
+    private int getNextOOId(Value originalValue) {
+        if(useOriginalOOId) {
+            return LongValue.unwrapInt((LongValue) originalValue);
+        } else {
+            return ooIdGenerator.nextId();
+        }
+    }
+
     private double readDouble(DataInputStream dis, boolean isLittle) throws IOException {
         byte[] bytes = new byte[Double.BYTES];
         dis.read(bytes);
@@ -519,20 +420,20 @@ public class Intern {
         return v;
     }
 
-    private Value readBlock(List<Value> internObjectTable, DataInputStream dis, int tag, int size) throws IOException {
-        if (size == 0) {
-            return new Atom(tag);
-        } else {
-            ObjectValue o = new ObjectValue(tag, size);
-            internObjectTable.add(o);
-            for (int i = 0; i < size; i++) {
-                o.setField(i, internRec(internObjectTable, dis));
-            }
-            if (tag == Object_tag) {
-                o.setField(1, new LongValue(ooIdGenerator.nextId()));
-            }
-            return o;
-        }
-    }
+//    private Value readBlock(List<Value> internObjectTable, DataInputStream dis, int tag, int size) throws IOException {
+//        if (size == 0) {
+//            return new Atom(tag);
+//        } else {
+//            ObjectValue o = new ObjectValue(tag, size);
+//            internObjectTable.add(o);
+//            for (int i = 0; i < size; i++) {
+//                o.setField(i, internRec(internObjectTable, dis));
+//            }
+//            if (tag == Object_tag) {
+//                o.setField(1, new LongValue(getNextOOId()));
+//            }
+//            return o;
+//        }
+//    }
 
 }

@@ -3,6 +3,8 @@ package interp.customoperations;
 import interp.ValueTag;
 import interp.value.Value;
 
+import java.io.DataOutputStream;
+
 public class CustomOperationsValue<V> implements Value {
     private final CustomOperations<V> customOperations;
     private final V data;
@@ -30,6 +32,12 @@ public class CustomOperationsValue<V> implements Value {
 
     public long hash() {
         return ops().hash.apply(getData());
+    }
+
+    public boolean hasSerialize() { return ops().serialize == null; }
+
+    public byte[] serialize() {
+        return ops().serialize.apply(data);
     }
 
 }

@@ -26,7 +26,7 @@ public class ExecutableFileInterpreter {
 
     public ExecutableFileInterpreter(ChannelRegistry channelRegistry) throws IOException {
 //        final Sys sys = new Sys("exec", new String[0]);
-        final Sys sys = new Sys("exec", new String[]{"/Users/sidharthkuruvila/src/ocaml/interp/src/test/resources/interp/interpreter/test1.ml"});
+        final Sys sys = new Sys("exec", new String[]{"-c", "./misc/simple.ml"});
         OOIdGenerator ooIdGenerator = new OOIdGenerator();
         CustomOperationsList customOperationsList = new CustomOperationsList();
         CodeFragmentTable codeFragmentTable = new CodeFragmentTable();

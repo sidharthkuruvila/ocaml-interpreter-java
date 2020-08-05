@@ -56,4 +56,9 @@ public class ValueStack {
     public int size() {
         return stack.size();
     }
+
+    public StackPointer pointerAt(int i) {
+        assert i < this.stack.size();
+        return new StackPointer(this, i);
+    }
 }

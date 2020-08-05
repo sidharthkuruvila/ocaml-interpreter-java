@@ -34,9 +34,9 @@ public class ExecutableInterpreterTest {
 
     }
 
-    public Path resourcePath(String name) {
+    public static Path resourcePath(String name) {
         System.out.println("/interp/interpreter/" + name);
-        return new File(this.getClass().getResource("/interp/interpreter/" + name).getFile()).toPath();
+        return new File(ExecutableInterpreterTest.class.getResource("/interp/interpreter/" + name).getFile()).toPath();
     }
 
 }

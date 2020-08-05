@@ -38,6 +38,16 @@ public class CodePointer implements Value {
         return code.code[n + index];
     }
 
+    public int switchInstruction(int newInstr) {
+        int oldInstr = code.code[index];
+        code.code[index] = newInstr;
+        return oldInstr;
+    }
+
+    public Code getCode(){
+        return code;
+    }
+
     @Override
     public String toString() {
         return "CodePointer{" +

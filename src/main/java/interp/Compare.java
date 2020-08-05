@@ -119,21 +119,35 @@ public class Compare {
                                     value1.asStringValue().getBytes(),
                                     value2.asStringValue().getBytes()
                             );
-                            if (res < 0) return LESS;
-                            if (res > 0) return GREATER;
+                            if (res < 0) {
+                                return LESS;
+                            }
+                            if (res > 0) {
+                                return GREATER;
+                            }
                             break;
                         }
                         case Double_tag: {
                             double d1 = value1.asDoubleValue().getValue();
                             double d2 = value2.asDoubleValue().getValue();
-                            if (d1 < d2) return LESS;
-                            if (d1 > d2) return GREATER;
+                            if (d1 < d2) {
+                                return LESS;
+                            }
+                            if (d1 > d2) {
+                                return GREATER;
+                            }
                             if (d1 != d2) {
-                                if (!total) return UNORDERED;
+                                if (!total) {
+                                    return UNORDERED;
+                                }
         /* One or both of d1 and d2 is NaN.  Order according to the
            convention NaN = NaN and NaN < f for all other floats f. */
-                                if (d1 == d1) return GREATER; /* d1 is not NaN, d2 is NaN */
-                                if (d2 == d2) return LESS;    /* d2 is not NaN, d1 is NaN */
+                                if (d1 == d1) {
+                                    return GREATER; /* d1 is not NaN, d2 is NaN */
+                                }
+                                if (d2 == d2) {
+                                    return LESS;    /* d2 is not NaN, d1 is NaN */
+                                }
                                 /* d1 and d2 are both NaN, thus equal: continue comparison */
                             }
                             break;
@@ -144,17 +158,29 @@ public class Compare {
                             int sz1 = da1.getSize();
                             int sz2 = da2.getSize();
 
-                            if (sz1 != sz2) return sz1 - sz2;
+                            if (sz1 != sz2) {
+                                return sz1 - sz2;
+                            }
                             for (int i = 0; i < sz1; i++) {
                                 double d1 = da1.getDoubleField(i);
                                 double d2 = da1.getDoubleField(i);
-                                if (d1 < d2) return LESS;
-                                if (d1 > d2) return GREATER;
+                                if (d1 < d2) {
+                                    return LESS;
+                                }
+                                if (d1 > d2) {
+                                    return GREATER;
+                                }
                                 if (d1 != d2) {
-                                    if (!total) return UNORDERED;
+                                    if (!total) {
+                                        return UNORDERED;
+                                    }
                                     /* See comment for Double_tag case */
-                                    if (d1 == d1) return GREATER;
-                                    if (d2 == d2) return LESS;
+                                    if (d1 == d1) {
+                                        return GREATER;
+                                    }
+                                    if (d2 == d2) {
+                                        return LESS;
+                                    }
                                 }
                             }
                             break;
@@ -169,7 +195,9 @@ public class Compare {
                         case Object_tag: {
                             long oid1 = LongValue.unwrap((LongValue) ((ObjectValue) value1).getField(1));
                             long oid2 = LongValue.unwrap((LongValue) ((ObjectValue) value1).getField(1));
-                            if (oid1 != oid2) return oid1 - oid2;
+                            if (oid1 != oid2) {
+                                return oid1 - oid2;
+                            }
                             break;
                         }
                         case Custom_tag: {
@@ -194,8 +222,12 @@ public class Compare {
                             }
                             camlState.setCompareUnordered(false);
                             res = compare.compare(v1, v2);
-                            if (camlState.getCompareUnordered() && !total) return UNORDERED;
-                            if (res != 0) return res;
+                            if (camlState.getCompareUnordered() && !total) {
+                                return UNORDERED;
+                            }
+                            if (res != 0) {
+                                return res;
+                            }
                             break;
                         }
                         default: {
@@ -204,11 +236,13 @@ public class Compare {
                             int sz1 = v1.getSize();
                             int sz2 = v2.getSize();
                             /* Compare sizes first for speed */
-                            if (sz1 != sz2) return sz1 - sz2;
+                            if (sz1 != sz2) {
+                                return sz1 - sz2;
+                            }
                             if (sz1 == 0) break;
                             /* Remember that we still have to compare fields 1 ... sz - 1 */
                             if (sz1 > 1) {
-                                stack.push(new ValuePair(v1, v2, sz1 - 1));
+                                stack.push(new ValuePair(v1, v2));
                             }
                             value1 = v1.getField(0);
                             value2 = v2.getField(0);
@@ -223,11 +257,11 @@ public class Compare {
                 if(stack.isEmpty()){
                     return EQUAL;
                 }
-                ValuePair vp = stack.peekLast();
+                ValuePair vp = stack.peekFirst();
+                vp.next();
                 value1 = vp.getValue1();
                 value2 = vp.getValue2();
-                vp.decCount();
-                if(vp.getCount() == 0){
+                if(vp.lastItem()){
                     stack.pop();
                 }
             }
@@ -239,26 +273,27 @@ public class Compare {
         private final ObjectValue value2;
         private int count;
 
-        public ValuePair(ObjectValue value1, ObjectValue value2, int count) {
+        public ValuePair(ObjectValue value1, ObjectValue value2) {
 
             this.value1 = value1;
             this.value2 = value2;
-            this.count = count;
+            this.count = 0;
         }
 
-        public ObjectValue getValue1() {
-            return value1;
+        public Value getValue1() {
+            return value1.getField(count);
         }
 
-        public ObjectValue getValue2() {
-            return value2;
+        public Value getValue2() {
+            return value2.getField(count);
         }
 
-        public int getCount() {
-            return count;
+        public void next() {
+            count+=1;
         }
-        public void decCount() {
-            count += 1;
+
+        public boolean lastItem() {
+            return count + 1 == value1.getSize();
         }
     }
 

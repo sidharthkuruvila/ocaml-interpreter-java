@@ -2,22 +2,26 @@ package interp;
 
 import interp.stack.StackPointer;
 import interp.stack.ValueStack;
+import interp.value.ObjectValue;
 import interp.value.Value;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
 
 public class InterpreterContext {
     private final ValueStack stack;
     private final List<Executable.DebugEvent> debugEvents;
     private Value lastException;
     private List<CodePointer> backtrace = new ArrayList<>();
+    private StackPointer trapBarrier;
+    private int eventCount = 0;
+    private final ObjectValue globalData;
 
-    public InterpreterContext(ValueStack stack, List<Executable.DebugEvent> debugEvents) {
+    public InterpreterContext(ObjectValue globalData, ValueStack stack, List<Executable.DebugEvent> debugEvents) {
 
+        this.globalData = globalData;
         this.stack = stack;
         this.debugEvents = debugEvents;
+        this.trapBarrier = stack.pointerAt(0);
     }
 
     public ValueStack getStack() {
@@ -60,6 +64,39 @@ public class InterpreterContext {
             previousIndex = nextIndex;
         }
         return stackFrame;
+    }
+
+
+    Map<Integer, Integer> breakpointMap = new HashMap<>();
+
+    public int getBreakpointInstruction(CodePointer pc) {
+        return breakpointMap.get(pc.index);
+    }
+
+    public void setBreakpoint(CodePointer pc, Interpreter.Instructions instruction) {
+        int oldInstr = pc.switchInstruction(instruction.ordinal());
+        breakpointMap.put(pc.index, oldInstr);
+    }
+
+    public void unsetBreakpoint(CodePointer pc) {
+        int oldInstr = breakpointMap.get(pc.index);
+        pc.switchInstruction(oldInstr);
+    }
+
+    public void setEventCount(int eventCount) {
+        this.eventCount = eventCount;
+    }
+
+    public void setTrapBarrier(StackPointer trapBarrier) {
+        this.trapBarrier = trapBarrier;
+    }
+
+    public StackPointer getTrapBarrier() {
+        return trapBarrier;
+    }
+
+    public ObjectValue getGlobalData() {
+        return globalData;
     }
 
     public static class StackFrame {

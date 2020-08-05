@@ -9,6 +9,7 @@ import interp.value.StringValue;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 public class Int64CustomOperations extends CustomOperations<Long> {
 
@@ -26,7 +27,14 @@ public class Int64CustomOperations extends CustomOperations<Long> {
         compare = Long::compare;
         hash = (Long a) -> a.hashCode();
         deserialize = Int64CustomOperations::deserialize;
+        serialize = Int64CustomOperations::serialize;
         customFixedLength = 8l;
+    }
+
+    static byte[] serialize(Long l) {
+        ByteBuffer buf = ByteBuffer.allocate(Long.BYTES);
+        buf.putLong(l);
+        return buf.array();
     }
 
     public static CustomOperationsValue<Long> add(CustomOperationsValue<Long> v1, CustomOperationsValue<Long> v2){

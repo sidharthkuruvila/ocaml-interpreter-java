@@ -1,5 +1,6 @@
 package interp;
 
+import interp.debugger.Debugging;
 import interp.exceptions.DivideByZeroError;
 import interp.primitives.Primitives;
 import interp.stack.StackPointer;
@@ -196,17 +197,25 @@ public class Interpreter {
         Instructions[] instructions = Instructions.values();
 
         Value env = new Atom(ValueTag.PAIR_TAG);
-        InterpreterContext context = new InterpreterContext(stack, debugEvents);
+        InterpreterContext context = new InterpreterContext(globalData, stack, debugEvents);
+        //"127.0.0.1", 9001
+        Debugging debugging = new Debugging(camlState, context, null, null, null );
 
         InterpreterHelper helper = new InterpreterHelper(context);
         int instructionCount = 0;
         try (PrintWriter pw = new PrintWriter(new FileWriter("java_out.txt"))) {
-
+            boolean breakpoint = false;
             while (true) {
                 boolean raiseNoTrace = false;
                 try {
-                    Instructions currInstr = instructions[pc.get()];
-
+                    Instructions currInstr;
+                    if(breakpoint) {
+                        pc = pc.dec();
+                        currInstr = instructions[context.getBreakpointInstruction(pc)];
+                        debugging.debugBreakpoint();
+                    } else {
+                        currInstr = instructions[pc.get()];
+                    }
                     pc = pc.inc();
                     instructionCount+=1;
                     pw.println(currInstr + ", " + pc.index);
