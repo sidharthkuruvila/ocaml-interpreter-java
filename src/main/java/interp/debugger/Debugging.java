@@ -1,6 +1,7 @@
 package interp.debugger;
 
 import interp.*;
+import interp.marshalling.Extern;
 import interp.stack.StackPointer;
 import interp.value.DoubleArray;
 import interp.value.ObjectValue;
@@ -104,6 +105,7 @@ public class Debugging {
     private final CamlState camlState;
     private final CodeFragmentTable codeFragmentTable;
     private final InterpreterContext context;
+    private final Extern extern;
     private InputStream is;
     private OutputStream os;
     private java.nio.channels.ReadableByteChannel rc;
@@ -116,6 +118,7 @@ public class Debugging {
         this.context = context;
         this.is = is;
         this.os = os;
+        this.extern = new Extern(codeFragmentTable);
     }
 
     public void debugBreakpoint() {
@@ -307,7 +310,7 @@ public class Debugging {
     }
 
     private void writeMarshalledValue(Value value) {
-        throw new RuntimeException();
+        extern.outputValue(os, value);
     }
 
     private Value readValue() {

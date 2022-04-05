@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TestMarshalling {
-    Compare compare = new Compare(new CamlState());
+    Compare compare = new Compare(new CamlState(null));
 
     @Test
     void testMarshalling() throws IOException {

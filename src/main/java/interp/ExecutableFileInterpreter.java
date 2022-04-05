@@ -18,7 +18,8 @@ public class ExecutableFileInterpreter {
     private final ExecutableBuilder exb;
     private final PrimitiveRegistry primitiveRegistry;
     private final ValueStack stack = new ValueStack();
-    private final CamlState camlState = new CamlState();
+    Backtrace backtrace = new Backtrace();
+    private final CamlState camlState = new CamlState(backtrace);
 
     public ExecutableFileInterpreter() throws IOException {
         this(new ChannelRegistry());
@@ -34,7 +35,7 @@ public class ExecutableFileInterpreter {
         exb = new ExecutableBuilder(codeFragmentTable, intern);
         primitiveRegistry = new PrimitiveRegistry();
         Compare compare = new Compare(camlState);
-        Backtrace backtrace = new Backtrace();
+
 
         NamedValues namedValues = new NamedValues();
 

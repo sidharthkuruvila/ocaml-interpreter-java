@@ -69,7 +69,7 @@ public class CompareTest {
     }
 
     private Compare makeCompare() {
-        CamlState camlState = new CamlState();
+        CamlState camlState = new CamlState(null);
         return new Compare(camlState);
     }
 

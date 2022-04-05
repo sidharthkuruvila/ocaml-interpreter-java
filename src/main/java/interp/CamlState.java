@@ -10,6 +10,11 @@ public class CamlState {
     private StackPointer externSp;
     private boolean compareUnordered;
     private Value exceptionBucket;
+    public final Backtrace backtrace;
+
+    public CamlState(Backtrace backtrace) {
+        this.backtrace = backtrace;
+    }
 
     public StackPointer getTrapSp() {
         return  trapSp;

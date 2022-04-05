@@ -198,7 +198,7 @@ public class Interpreter {
 
         Value env = new Atom(ValueTag.PAIR_TAG);
         InterpreterContext context = new InterpreterContext(globalData, stack, debugEvents);
-        //"127.0.0.1", 9001
+
         Debugging debugging = new Debugging(camlState, context, null, null, null );
 
         InterpreterHelper helper = new InterpreterHelper(context);
@@ -879,7 +879,7 @@ public class Interpreter {
 //      }
 
                             stack.reset(trapSp);
-                            pc = getCodePonter((CodePointer) stack.pop());
+                            pc = getCodePonter(stack.pop());
                             camlState.setTrapSp((StackPointer) stack.pop());
                             env = stack.pop();
                             extraArgs = ((LongValue) stack.pop()).getIntValue();
@@ -1285,6 +1285,15 @@ public class Interpreter {
                 }
             }
         } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch(RuntimeException e) {
+            System.out.println("blahhaha");
+            List<CodePointer> backtrace = context.getBacktrace();
+            context.addFramePointers(backtrace);
+            for(CodePointer cp : backtrace) {
+                var x = camlState.backtrace.convertRawBacktraceSlot(context, cp);
+                System.out.println("C" + x);
+            }
             throw new RuntimeException(e);
         }
     }

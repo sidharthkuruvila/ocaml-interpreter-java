@@ -41,6 +41,12 @@ java {
     targetCompatibility = JavaVersion.VERSION_11
 }
 
+tasks.withType<Test> {
+    this.testLogging {
+        this.showStandardStreams = true
+    }
+}
+
 val test by tasks.getting(Test::class) {
     // Use junit platform for unit tests
     useJUnitPlatform()

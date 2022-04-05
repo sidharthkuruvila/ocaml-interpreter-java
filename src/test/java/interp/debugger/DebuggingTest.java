@@ -127,7 +127,7 @@ class DebuggingTest {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
 
 
-        CamlState camlState = new CamlState();
+        CamlState camlState = new CamlState(null);
 
         Debugging debugging = new Debugging(camlState, context, codeFragmentTable, is, os);
 

@@ -1,6 +1,7 @@
 package interp;
 
 import interp.value.ObjectValue;
+import interp.value.StringValue;
 import interp.value.Value;
 
 import java.io.ByteArrayInputStream;
@@ -96,7 +97,13 @@ public class Executable {
                     int codeOffset = ev.getIntField(EV_POS);
                     CodePointer codePointer = new CodePointer(codeFragment.code, codeOffset/4);
                     String filename = evStart.getStringField(POS_FNAME);
-                    String defname = ev.getStringField(EV_DEFNAME);
+                    Value defnameValue = ev.getField(EV_DEFNAME);
+                    String defname;
+                    if(defnameValue instanceof StringValue) {
+                        defname = ev.getStringField(EV_DEFNAME);
+                    } else {
+                        defname = "<old bytecode>";
+                    }
                     int lineNumber = evStart.getIntField(POS_LNUM);
                     int startChar = evStart.getIntField(POS_CNUM) -
                             evStart.getIntField(POS_BOL);

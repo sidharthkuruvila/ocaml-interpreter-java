@@ -117,7 +117,7 @@ public class Sys {
     }
 
     public Value exit(LongValue exitCode) {
-        System.exit(LongValue.unwrapInt(exitCode));
+//        System.exit(LongValue.unwrapInt(exitCode));
         throw new RuntimeException("Should never come here");
     }
 }
